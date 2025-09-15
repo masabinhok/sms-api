@@ -1,6 +1,6 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
-import { handleSendCredentialsDto } from 'apps/libs/shared/dtos/handle-send-credentials.dto';
+import { handleSendCredentialsDto } from 'apps/libs/dtos/handle-send-credentials.dto';
 
 @Injectable()
 export class EmailService {

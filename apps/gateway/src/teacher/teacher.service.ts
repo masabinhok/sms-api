@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { CreateTeacherProfileDto } from 'apps/libs/shared/dtos/create-teacher-profile.dto';
+import { CreateTeacherProfileDto } from 'apps/libs/dtos/create-teacher-profile.dto';
 
 @Injectable()
 export class TeacherService {

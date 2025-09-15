@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
-import { CreateStudentProfileDto } from '../../libs/shared/dtos/create-student-profile.dto';
+import { CreateStudentProfileDto } from '../../libs/dtos/create-student-profile.dto';
 import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()

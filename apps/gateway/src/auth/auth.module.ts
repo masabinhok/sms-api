@@ -1,27 +1,22 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { PrismaService } from './prisma.service';
+import { AuthController } from './auth.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [
-    JwtModule.register({
-      global: true,
-    }),
+  imports : [
     ClientsModule.register([
       {
-        name: 'EMAIL_SERVICE',
-        transport: Transport.TCP,
+        name: 'AUTH_SERVICE',
+        transport:  Transport.TCP,
         options: {
-          port: 3004
+          port: 3001
         }
       }
     ])
   ],
   controllers: [AuthController],
-  providers: [AuthService, PrismaService, ConfigService],
+  providers: [AuthService, ConfigService],
 })
 export class AuthModule {}
