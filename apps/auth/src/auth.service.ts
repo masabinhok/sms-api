@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { HandleStudentCreatedDto } from 'apps/libs/shared/dtos/handle-student-created.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from './prisma.service';
 import { HandleTeacherCreatedDto } from 'apps/libs/shared/dtos/handle-teacher-created.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, 
+    @Inject('EMAIL_SERVICE') private emailClient: ClientProxy
+  ) {}
 
   generateUsername(fullName: string, dob: string, studentId: string): string {
     const namePart = fullName.split(' ').map(n => n[0].toUpperCase()).join('');
@@ -80,7 +83,7 @@ export class AuthService {
       });
 
       // TODO: Email the username and password to the student's email address
-      // await this.emailService.sendCredentials(email, username, password);
+      this.emailClient.emit('send.credentials', { email, username, password, fullName });
 
     } catch (error) {
       console.error('Error creating user:', error);
@@ -120,8 +123,7 @@ export class AuthService {
       });
 
       // TODO: Email the username and password to the teacher's email address
-      // await this.emailService.sendCredentials(email, username, password);
-
+           this.emailClient.emit('send.credentials', { email, username, password, fullName });
     } catch (error) {
       console.error('Error creating user:', error);
       
