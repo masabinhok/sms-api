@@ -3,14 +3,18 @@ import { TeacherController } from './teacher.controller';
 import { TeacherService } from './teacher.service';
 
 describe('TeacherController', () => {
-  let teacherController: TeacherController;
+  let controller: TeacherController;
 
   beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [TeacherController],
       providers: [TeacherService],
     }).compile();
 
-    teacherController = app.get<TeacherController>(TeacherController);
+    controller = module.get<TeacherController>(TeacherController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 });

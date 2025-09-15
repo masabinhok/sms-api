@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HandleStudentCreatedDto } from 'apps/libs/shared/dtos/handle-student-created.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from './prisma.service';
+import { HandleTeacherCreatedDto } from 'apps/libs/shared/dtos/handle-teacher-created.dto';
 
 @Injectable()
 export class AuthService {
@@ -92,4 +93,46 @@ export class AuthService {
       throw new Error('Failed to create user credentials');
     }
   } 
+
+  async handleTeacherCreated(payload: HandleTeacherCreatedDto) {
+    try {
+      // Logic to generate login credentials for teacher
+      const { teacherId, fullName, dob, email } = payload;
+  
+      
+      // Generate unique username to avoid collisions
+      const username = await this.generateUniqueUsername(fullName, dob, teacherId);
+      const password = this.generatePassword();
+
+      // Hash the password
+      const hashedPassword = await this.generateHash(password);
+     
+
+      await this.prisma.user.create({
+        data: {
+          username,
+          passwordHash: hashedPassword,
+          role: 'TEACHER',
+          profileId: teacherId,
+          profileType: 'TEACHER',
+          profileEmail: email
+        }
+      });
+
+      // TODO: Email the username and password to the teacher's email address
+      // await this.emailService.sendCredentials(email, username, password);
+
+    } catch (error) {
+      console.error('Error creating user:', error);
+      
+      // Handle specific Prisma errors
+      if (error.code === 'P2002') {
+        throw new Error('Username or email already exists');
+      }
+      
+      throw new Error('Failed to create user credentials');
+    }
+  } 
 }
+
+ 

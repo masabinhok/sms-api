@@ -6,7 +6,7 @@ import { CreateStudentProfileDto } from 'apps/libs/shared/dtos/create-student-pr
 export class StudentController {
   constructor(private studentService: StudentService){}
 
-  @Post('/createProfile')
+  @Post('/create-profile')
   async createStudentProfile(@Body() createStudentProfileDto: CreateStudentProfileDto){
     return this.studentService.createStudentProfile(createStudentProfileDto);
   }
