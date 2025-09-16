@@ -12,16 +12,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService
   ) {}
 
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+
   @EventPattern('student.created')
   async handleStudentCreated(@Payload() payload: HandleStudentCreatedDto ){
     return this.authService.handleStudentCreated(payload);
   }
 
 
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
+ 
   @EventPattern('teacher.created')
   async handleTeacherCreated(@Payload() payload: HandleTeacherCreatedDto ){
     return this.authService.handleTeacherCreated(payload);
@@ -42,8 +40,6 @@ export class AuthController {
     return this.authService.handleUserRefresh(payload.userId, payload.token);
   }
 
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
   @MessagePattern('admin.createProfile')
   async createAdminProfile(@Payload() payload: {name: string, email: string}){
       return this.authService.createAdminProfile(payload);

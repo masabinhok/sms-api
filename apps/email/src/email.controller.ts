@@ -9,8 +9,6 @@ import { Roles } from 'apps/libs/decorators/roles.decorator';
 export class EmailController {
   constructor(private readonly emailService: EmailService) {}
 
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
   @EventPattern('send.credentials')
   async handleSendCredentials(data: handleSendCredentialsDto){
     return this.emailService.handleSendCredentials(data);

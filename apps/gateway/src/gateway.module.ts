@@ -7,12 +7,18 @@ import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [StudentModule, TeacherModule, AuthModule,
+       ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: '.env'
+        }),
      JwtModule.register({
           global: true,
         }),
+        
   ],
   controllers: [GatewayController],
   providers: [

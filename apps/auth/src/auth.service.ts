@@ -39,7 +39,7 @@ export class AuthService {
       });
 
       if (existingAdmin) {
-        console.log('Admin already exists:', existingAdmin.username);
+      
         return { 
           message: 'Admin already exists', 
           username: existingAdmin.username 
@@ -69,15 +69,6 @@ export class AuthService {
         username: adminData.username, 
         password: adminData.password, 
         fullName: adminData.fullName 
-      });
-
-
-
-      console.log('✅ Admin profile created successfully:', {
-        id: admin.id,
-        username: admin.username,
-        email: admin.profileEmail,
-        role: admin.role
       });
 
       return {
@@ -320,7 +311,7 @@ export class AuthService {
   }
 
   // logout
-   async handleUserLogout(userId: string): Promise<void> {
+   async handleUserLogout(userId: string): Promise<{success: boolean, message: string}> {
     const loggedOutUser = await this.prisma.user.update({
       where: {
         id: userId,
@@ -333,6 +324,11 @@ export class AuthService {
     if(!loggedOutUser){
       throw new BadRequestException('No user to Logout');
     }
+
+    return {
+      success: true,
+      message: 'User logged out successfully'
+    };
   }
 
 }

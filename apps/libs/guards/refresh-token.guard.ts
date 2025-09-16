@@ -17,14 +17,17 @@ export class RefreshTokenGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = request.cookies['refresh_token'];
 
+
     if (!token) {
       throw new UnauthorizedException('Refresh Token missing');
     }
+    
 
     try {
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.config.get<string>('jwt.refreshSecret'),
+        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
       });
+     
 
       request.user = payload;
       return true;

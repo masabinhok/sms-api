@@ -2,7 +2,6 @@ import {
   IsNotEmpty, 
   IsString, 
   IsEmail, 
-  IsDateString, 
   IsOptional, 
   IsIn, 
   Length, 
@@ -17,9 +16,11 @@ export class CreateStudentProfileDto {
   @Transform(({ value }) => value?.trim())
   fullName: string;
 
-  @IsDateString({}, { message: 'Date of birth must be a valid date' })
-  @Type(() => Date)
-  dob: Date;
+  // @IsNotEmpty({ message: 'Date of birth is required' })
+  // @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'Date of birth must be in YYYY-MM-DD format' })
+  // @Type(() => Date)
+  @IsNotEmpty()
+  dob: string;
 
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @Transform(({ value }) => value?.toLowerCase()?.trim())

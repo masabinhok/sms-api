@@ -2,7 +2,6 @@ import {
   IsNotEmpty, 
   IsString, 
   IsEmail, 
-  IsDateString, 
   IsArray, 
   IsEnum, 
   IsOptional, 
@@ -71,9 +70,8 @@ export class CreateTeacherProfileDto {
   @Transform(({ value }) => value?.trim())
   address: string;
 
-  @IsDateString({}, { message: 'Date of birth must be a valid date' })
-  @Type(() => Date)
-  dob: Date;
+  @IsNotEmpty()
+  dob: string;
 
   @IsArray({ message: 'Subjects must be an array' })
   @IsEnum(Subject, { each: true, message: 'Each subject must be a valid subject' })
