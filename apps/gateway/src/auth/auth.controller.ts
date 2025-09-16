@@ -5,6 +5,8 @@ import { Request, Response } from 'express';
 import { RefreshTokenGuard } from 'apps/libs/guards/refresh-token.guard';
 import { GetUser } from 'apps/libs/decorators/get-user.decorator';
 import { AuthGuard } from 'apps/libs/guards/auth.guard';
+import { RolesGuard } from 'apps/libs/guards/roles.guard';
+import { Roles } from 'apps/libs/decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -89,7 +91,8 @@ export class AuthController {
     };
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Post('/admin')
   async createAdminProfile(@Body() data: {name: string, email: string}){
     return this.authService.createAdminProfile(data);
