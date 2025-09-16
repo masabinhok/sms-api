@@ -21,7 +21,6 @@ model User {
   role         Role
   profileId    String
   profileEmail String
-  profileType  ProfileType
 
   refreshToken String?
   createdAt    DateTime @default(now())
@@ -34,7 +33,3 @@ enum Role {
   STUDENT
 }
 
-enum ProfileType {
-  STUDENT
-  TEACHER
-}

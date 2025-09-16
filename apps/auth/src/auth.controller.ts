@@ -42,5 +42,12 @@ export class AuthController {
     return this.authService.handleUserRefresh(payload.userId, payload.token);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  @MessagePattern('admin.createProfile')
+  async createAdminProfile(@Payload() payload: {name: string, email: string}){
+      return this.authService.createAdminProfile(payload);
+  }
+
 
 }

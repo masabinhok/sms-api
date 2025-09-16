@@ -17,6 +17,94 @@ export class AuthService {
     private config: ConfigService
   ) {}
 
+
+  async createAdminProfile(payload : {name: string, email: string}) {
+    try {
+      const {name, email} = payload;
+      // Generate fake admin data
+      const adminData = {
+        username: `admin-${name}`,
+        password: 'admin123', // Default password
+        email: email,
+        fullName: `System Administrator ${name}`,
+        profileId: `admin-${name}-001`, // Unique admin profile ID
+      };
+
+      // Check if admin already exists
+      const existingAdmin = await this.prisma.user.findFirst({
+        where: { 
+          role: 'ADMIN',
+          username: adminData.username
+         }
+      });
+
+      if (existingAdmin) {
+        console.log('Admin already exists:', existingAdmin.username);
+        return { 
+          message: 'Admin already exists', 
+          username: existingAdmin.username 
+        };
+      }
+
+      
+
+      // Hash the password
+      const hashedPassword = await this.generateHash(adminData.password);
+
+      // Create admin user
+      const admin = await this.prisma.user.create({
+        data: {
+          username: adminData.username,
+          passwordHash: hashedPassword,
+          role: 'ADMIN',
+          profileId: adminData.profileId,
+          profileEmail: adminData.email,
+        }
+      });
+
+   
+
+      this.emailClient.emit('send.credentials', { 
+        email: adminData.email, 
+        username: adminData.username, 
+        password: adminData.password, 
+        fullName: adminData.fullName 
+      });
+
+
+
+      console.log('✅ Admin profile created successfully:', {
+        id: admin.id,
+        username: admin.username,
+        email: admin.profileEmail,
+        role: admin.role
+      });
+
+      return {
+        success: true,
+        message: 'Admin profile created successfully',
+        adminData: {
+          username: adminData.username,
+          password: adminData.password, // Return for initial setup
+          email: adminData.email,
+          fullName: adminData.fullName
+        }
+      };
+
+    } catch (error) {
+      console.error('Error creating admin profile:', error);
+      
+      if (error.code === 'P2002') {
+        throw new Error('Admin username already exists');
+      }
+      
+      throw new Error(`Failed to create admin profile: ${error.message}`);
+    }
+  }
+
+
+  
+  
   generateUsername(fullName: string, dob: string, studentId: string): string {
     const namePart = fullName.split(' ').map(n => n[0].toUpperCase()).join('');
 
@@ -83,7 +171,6 @@ export class AuthService {
           passwordHash: hashedPassword,
           role: 'STUDENT',
           profileId: studentId,
-          profileType: 'STUDENT',
           profileEmail: email
         }
       });
@@ -123,7 +210,6 @@ export class AuthService {
           passwordHash: hashedPassword,
           role: 'TEACHER',
           profileId: teacherId,
-          profileType: 'TEACHER',
           profileEmail: email
         }
       });

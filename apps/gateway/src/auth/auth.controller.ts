@@ -4,6 +4,7 @@ import { LoginDto } from 'apps/libs/dtos/login.dto';
 import { Request, Response } from 'express';
 import { RefreshTokenGuard } from 'apps/libs/guards/refresh-token.guard';
 import { GetUser } from 'apps/libs/decorators/get-user.decorator';
+import { AuthGuard } from 'apps/libs/guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -32,6 +33,7 @@ export class AuthController {
     };
     
   }
+
   @UseGuards(RefreshTokenGuard)
   @Post('/logout')
   async handleUserLogout(
@@ -85,6 +87,12 @@ export class AuthController {
     return {
       message: 'Token Refreshed Successfully',
     };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/admin')
+  async createAdminProfile(@Body() data: {name: string, email: string}){
+    return this.authService.createAdminProfile(data);
   }
 
 

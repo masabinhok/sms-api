@@ -19,4 +19,8 @@ export class AuthService {
   async handleUserRefresh(userId: string, token: string): Promise<{accessToken: string, refreshToken: string}> {
     return firstValueFrom(this.authClient.send('user.refresh', {userId, token}));
   } 
+
+  async createAdminProfile(data: {name: string, email: string}){
+    return this.authClient.send('admin.createProfile', data);
+  }
 }
