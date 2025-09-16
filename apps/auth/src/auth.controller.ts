@@ -1,11 +1,10 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { HandleStudentCreatedDto } from 'apps/libs/dtos/handle-student-created.dto';
 import { HandleTeacherCreatedDto } from 'apps/libs/dtos/handle-teacher-created.dto';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
-import { RolesGuard } from 'apps/libs/guards/roles.guard';
-import { Roles } from 'apps/libs/decorators/roles.decorator';
+import { PasswordChangeDto } from '../dtos/password-change.dto'
 
 @Controller()
 export class AuthController {
@@ -43,6 +42,11 @@ export class AuthController {
   @MessagePattern('admin.createProfile')
   async createAdminProfile(@Payload() payload: {name: string, email: string}){
       return this.authService.createAdminProfile(payload);
+  }
+
+  @MessagePattern('user.changePassword')
+  async handlePasswordChange(@Payload() payload: PasswordChangeDto){
+    return this.authService.handlePasswordChange(payload);
   }
 
 

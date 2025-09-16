@@ -8,6 +8,7 @@ import { LoginDto } from 'apps/libs/dtos/login.dto';
 import { Role } from '../generated/prisma';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { PasswordChangeDto } from '../dtos/password-change.dto';
 
 @Injectable()
 export class AuthService {
@@ -328,6 +329,53 @@ export class AuthService {
     return {
       success: true,
       message: 'User logged out successfully'
+    };
+  }
+
+  async handlePasswordChange(data: PasswordChangeDto): Promise<{success: boolean, message: string}> {
+    const {userId, oldPassword, newPassword} = data;
+
+    // Check if new password is the same as old password
+    if (oldPassword === newPassword) {
+      throw new BadRequestException('New password must be different from the old password');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    });
+
+    if(!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Verify old password
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if(!isOldPasswordValid) {
+      throw new UnauthorizedException('Incorrect old password');
+    }
+
+    const hashedPassword = await this.generateHash(newPassword);
+
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id: userId
+      }, 
+      data: {
+        passwordHash: hashedPassword,
+        // Clear refresh token to force re-login with new password
+        refreshToken: null
+      }
+    });
+
+    if(!updatedUser) {
+      throw new BadRequestException('Failed to update password');
+    }
+
+    return {
+      success: true,
+      message: 'Password changed successfully'
     };
   }
 

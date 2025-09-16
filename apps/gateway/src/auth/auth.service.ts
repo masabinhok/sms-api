@@ -3,6 +3,7 @@ import { LoginDto } from 'apps/libs/dtos/login.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom, timeout, catchError } from 'rxjs';
 import { throwError } from 'rxjs';
+import { PasswordChangeDto } from 'apps/libs/dtos/password-change.dto';
 
 @Injectable()
 export class AuthService {
@@ -75,5 +76,10 @@ export class AuthService {
       console.error('Admin creation failed:', error.message);
       throw new Error('Admin creation failed: ' + error.message);
     }
+  }
+
+  async handlePasswordChange(data: PasswordChangeDto, userId: string){
+    return this.authClient.send('user.changePassword', {...data, userId})
+
   }
 }

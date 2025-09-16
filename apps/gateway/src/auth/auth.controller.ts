@@ -7,6 +7,7 @@ import { GetUser } from 'apps/libs/decorators/get-user.decorator';
 import { AuthGuard } from 'apps/libs/guards/auth.guard';
 import { RolesGuard } from 'apps/libs/guards/roles.guard';
 import { Roles } from 'apps/libs/decorators/roles.decorator';
+import { PasswordChangeDto } from 'apps/libs/dtos/password-change.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -89,6 +90,14 @@ export class AuthController {
     return {
       message: 'Token Refreshed Successfully',
     };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/change-password')
+  async handlePasswordChange(
+    @GetUser('sub') userId: string,
+    @Body() passwordChangeDto: PasswordChangeDto){
+    return this.authService.handlePasswordChange(passwordChangeDto, userId);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
