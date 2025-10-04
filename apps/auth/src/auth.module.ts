@@ -4,10 +4,14 @@ import { AuthService } from './auth.service';
 import { PrismaService } from './prisma.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: '.env'
+        }),
     JwtModule.register({
       global: true,
     }),
