@@ -5,9 +5,15 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(StudentModule, {
-    transport: Transport.TCP,
+    transport: Transport.KAFKA,
     options: {
-      port: 3002
+      client: {
+        clientId: 'student',
+        brokers: ['localhost:9092']
+      }, 
+      consumer: {
+        groupId: 'student-consumer'
+      }
     }
   });
   await app.listen();

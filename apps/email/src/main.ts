@@ -4,9 +4,15 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(EmailModule, {
-    transport: Transport.TCP,
+    transport: Transport.KAFKA,
     options: {
-      port: 3004,
+      client: {
+        clientId: 'email',
+        brokers: ['localhost:9092']
+      }, 
+      consumer: {
+        groupId: 'email-consumer'
+      }
     }
   });
   await app.listen();

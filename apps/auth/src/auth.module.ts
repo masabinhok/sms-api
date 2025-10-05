@@ -18,9 +18,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ClientsModule.register([
       {
         name: 'EMAIL_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.KAFKA,
         options: {
-          port: 3004
+          client: {
+            clientId: 'email',
+            brokers: ['localhost:9092']
+          }, 
+          consumer: {
+            groupId: 'email-consumer'
+          }
         }
       }
     ])

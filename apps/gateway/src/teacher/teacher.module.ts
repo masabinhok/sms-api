@@ -9,9 +9,15 @@ import { ConfigService } from '@nestjs/config';
     ClientsModule.register([
       {
         name: 'TEACHER_CLIENT',
-        transport: Transport.TCP,
+        transport: Transport.KAFKA,
         options: {
-          port: 3003
+          client: {
+            clientId: 'teacher',
+            brokers: ['localhost:9092']
+          }, 
+          consumer: {
+            groupId: 'teacher-consumer'
+          }
         }
       }
     ])
