@@ -65,7 +65,7 @@ export class AuthService {
 
    
 
-      this.emailClient.emit('send.credentials', { 
+      this.emailClient.emit('user.created', { 
         email: adminData.email, 
         username: adminData.username, 
         password: adminData.password, 
@@ -168,7 +168,7 @@ export class AuthService {
       });
 
       // TODO: Email the username and password to the student's email address
-      this.emailClient.emit('send.credentials', { email, username, password, fullName });
+      this.emailClient.emit('user.created', { email, username, password, fullName });
 
     } catch (error) {
       console.error('Error creating user:', error);
@@ -207,7 +207,7 @@ export class AuthService {
       });
 
       // TODO: Email the username and password to the teacher's email address
-           this.emailClient.emit('send.credentials', { email, username, password, fullName });
+           this.emailClient.emit('user.created', { email, username, password, fullName });
     } catch (error) {
       console.error('Error creating user:', error);
       
