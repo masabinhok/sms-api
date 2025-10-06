@@ -1,6 +1,6 @@
 services:
   kafka1:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka
     container_name: kafka1
     environment:
       - KAFKA_ENABLE_KRAFT=yes
@@ -22,7 +22,7 @@ services:
     networks:
       - kafka-network
   kafka2:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka
     container_name: kafka2
     environment:
       - KAFKA_ENABLE_KRAFT=yes
@@ -41,7 +41,7 @@ services:
     networks:
       - kafka-network
   kafka3:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka
     container_name: kafka3
     environment:
       - KAFKA_ENABLE_KRAFT=yes
@@ -61,7 +61,7 @@ services:
       - kafka-network
 
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: provectuslabs/kafka-ui
     container_name: kafka-ui
     depends_on:
       - kafka1
