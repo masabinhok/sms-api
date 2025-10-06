@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
-import { ClientProxy } from '@nestjs/microservices';
+import {  ClientKafkaProxy,  } from '@nestjs/microservices';
 import { firstValueFrom, timeout, catchError } from 'rxjs';
 import { throwError } from 'rxjs';
 import { PasswordChangeDto } from 'apps/libs/dtos/password-change.dto';
@@ -8,7 +8,16 @@ import { PasswordChangeDto } from 'apps/libs/dtos/password-change.dto';
 @Injectable()
 export class AuthService {
 
-  constructor(@Inject('AUTH_SERVICE') private authClient: ClientProxy) {}
+  constructor(@Inject('AUTH_SERVICE') private authClient: ClientKafkaProxy) {}
+
+  async onModuleInit(){
+    this.authClient.subscribeToResponseOf('user.login')
+    this.authClient.subscribeToResponseOf('user.refresh')
+    this.authClient.subscribeToResponseOf('user.logout')
+    this.authClient.subscribeToResponseOf('admin.createProfile')
+    this.authClient.subscribeToResponseOf('user.changePassword')
+    await this.authClient.connect();
+  }
 
   async handleUserLogin(loginDto: LoginDto): Promise<{accessToken: string, refreshToken: string}> {
     try {

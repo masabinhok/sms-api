@@ -14,9 +14,15 @@ import { ConfigModule } from '@nestjs/config';
     ClientsModule.register([
           {
             name: 'AUTH_SERVICE',
-            transport: Transport.TCP,
+            transport: Transport.KAFKA,
             options: {
-              port: 3001
+              client: {
+                clientId: 'auth-client-from-teacher',
+                            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
+              }, 
+              consumer: {
+                groupId: 'auth-consumer-from-teacher'
+              }
             }
           }
         ]),

@@ -7,9 +7,12 @@ import {
   IsOptional, 
   IsIn, 
   Length, 
-  Matches 
+  Matches,
+  IsDateString,
+  IsISO8601
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { normalizeISODate } from '../utils/utils';
 
 export enum Subject {
   MATH = 'MATH',
@@ -70,7 +73,11 @@ export class CreateTeacherProfileDto {
   @Transform(({ value }) => value?.trim())
   address: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Date of birth is required' })
+  @IsISO8601({ strict: true }, { message: 'Date of birth must be a valid ISO-8601 DateTime format (YYYY-MM-DDTHH:mm:ss.sssZ or YYYY-MM-DD)' })
+  @Transform(({ value }) => {
+    return normalizeISODate(value);
+  })
   dob: string;
 
   @IsArray({ message: 'Subjects must be an array' })

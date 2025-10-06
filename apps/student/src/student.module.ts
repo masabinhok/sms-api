@@ -10,10 +10,16 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ClientsModule.register([
       {
         name: 'AUTH_SERVICE',
-        transport: Transport.TCP,
-        options: {
-          port: 3001
-        }
+        transport: Transport.KAFKA,
+    options: {
+      client: {
+        clientId: 'auth-client-from-student',
+                    brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
+      }, 
+      consumer: {
+        groupId: 'auth-consumer-from-student'
+      }
+    }
       }
     ]),
     ConfigModule.forRoot({
