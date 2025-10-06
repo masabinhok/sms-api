@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { Partitioners } from 'kafkajs';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
@@ -13,10 +14,13 @@ import { ConfigService } from '@nestjs/config';
         options: {
           client: {
             clientId: 'auth-client',
-                        brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
+            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
           }, 
           consumer: {
             groupId: 'auth-consumer-client'
+          },
+          producer: {
+            createPartitioner: Partitioners.LegacyPartitioner
           }
         }
       }

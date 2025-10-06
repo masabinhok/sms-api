@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { StudentModule } from './student.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Partitioners } from 'kafkajs';
 
 
 async function bootstrap() {
@@ -9,10 +10,13 @@ async function bootstrap() {
     options: {
       client: {
         clientId: 'student-server',
-                    brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
+        brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
       }, 
       consumer: {
-        groupId: 'student-consumer-server'
+        groupId: 'student-server-server'
+      },
+      producer: {
+        createPartitioner: Partitioners.LegacyPartitioner
       }
     }
   });

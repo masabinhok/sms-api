@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PrismaService } from './prisma.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { Partitioners } from 'kafkajs';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -26,6 +27,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           }, 
           consumer: {
             groupId: 'email-consumer-from-auth'
+          },
+          producer: {
+            createPartitioner: Partitioners.LegacyPartitioner
           }
         }
       }
