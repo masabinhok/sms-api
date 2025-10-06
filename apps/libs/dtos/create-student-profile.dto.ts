@@ -5,7 +5,8 @@ import {
   IsOptional, 
   IsIn, 
   Length, 
-  Matches 
+  Matches,
+  IsISO8601
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
@@ -16,10 +17,23 @@ export class CreateStudentProfileDto {
   @Transform(({ value }) => value?.trim())
   fullName: string;
 
-  // @IsNotEmpty({ message: 'Date of birth is required' })
-  // @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'Date of birth must be in YYYY-MM-DD format' })
-  // @Type(() => Date)
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Date of birth is required' })
+  @IsISO8601({ strict: true }, { message: 'Date of birth must be a valid ISO-8601 DateTime format (YYYY-MM-DDTHH:mm:ss.sssZ or YYYY-MM-DD)' })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      // If it's just a date (YYYY-MM-DD), convert to ISO-8601 DateTime
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return new Date(value + 'T00:00:00.000Z').toISOString();
+      }
+      // If it's already an ISO string, validate and return
+      try {
+        return new Date(value).toISOString();
+      } catch {
+        return value; // Let validator handle the error
+      }
+    }
+    return value;
+  })
   dob: string;
 
   @IsEmail({}, { message: 'Please provide a valid email address' })
