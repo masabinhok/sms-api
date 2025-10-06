@@ -21,11 +21,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'email',
-            brokers: ['localhost:9092']
+            clientId: 'email-client-from-auth',
+            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
           }, 
           consumer: {
-            groupId: 'email-consumer'
+            groupId: 'email-consumer-from-auth'
           }
         }
       }

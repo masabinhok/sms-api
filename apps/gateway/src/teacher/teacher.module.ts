@@ -12,11 +12,11 @@ import { ConfigService } from '@nestjs/config';
         transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'teacher',
-            brokers: ['localhost:9092']
+            clientId: 'teacher-client',
+                        brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
           }, 
           consumer: {
-            groupId: 'teacher-consumer'
+            groupId: 'teacher-consumer-client'
           }
         }
       }

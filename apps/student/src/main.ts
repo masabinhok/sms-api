@@ -8,11 +8,11 @@ async function bootstrap() {
     transport: Transport.KAFKA,
     options: {
       client: {
-        clientId: 'student',
-        brokers: ['localhost:9092']
+        clientId: 'student-server',
+                    brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
       }, 
       consumer: {
-        groupId: 'student-consumer'
+        groupId: 'student-consumer-server'
       }
     }
   });
