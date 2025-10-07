@@ -272,7 +272,6 @@ export class AuthService {
     refreshToken: string;
   }> {
     const { username, password, role} = loginDto;
-    console.log(role)
     const user = await this.prisma.user.findUnique({
       where: { 
         username,
