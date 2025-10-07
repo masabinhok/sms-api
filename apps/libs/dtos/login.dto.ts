@@ -1,5 +1,6 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { Role } from 'apps/auth/generated/prisma';
 
 export class LoginDto {
   @IsString()
@@ -11,4 +12,10 @@ export class LoginDto {
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(6, { message: 'Password must be at least 6 characters long' })
   password: string;
+
+  @IsNotEmpty()
+  @IsEnum(Role, { 
+    message: 'Role must be one of: ADMIN, TEACHER, STUDENT' 
+  })
+  role: Role;
 }

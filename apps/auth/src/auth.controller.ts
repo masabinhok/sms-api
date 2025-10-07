@@ -17,8 +17,6 @@ export class AuthController {
     return this.authService.handleStudentCreated(payload);
   }
 
-
- 
   @EventPattern('teacher.created')
   async handleTeacherCreated(@Payload() payload: HandleTeacherCreatedDto ){
     return this.authService.handleTeacherCreated(payload);

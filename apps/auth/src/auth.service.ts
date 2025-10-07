@@ -270,14 +270,17 @@ export class AuthService {
     accessToken: string;
     refreshToken: string;
   }> {
-    const { username, password } = loginDto;
-
+    const { username, password, role} = loginDto;
+    console.log(role)
     const user = await this.prisma.user.findUnique({
-      where: { username }
+      where: { 
+        username,
+        role
+       }
     })
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('Invalid username or password or role.');
     }
 
     const tokens = await this.generateTokens(user.id, username, user.role);
