@@ -1,4 +1,5 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { HandleStudentCreatedDto } from 'apps/libs/dtos/handle-student-created.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from './prisma.service';
@@ -280,7 +281,10 @@ export class AuthService {
     })
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      throw new UnauthorizedException('Invalid username or password or role.');
+      throw new RpcException({
+        status: 401,
+        message: 'Invalid username or password or role.'
+      });
     }
 
     const tokens = await this.generateTokens(user.id, username, user.role);
@@ -303,11 +307,17 @@ export class AuthService {
       }
     })
 
-    if (!user || !user.refreshToken) throw new ForbiddenException();
+    if (!user || !user.refreshToken) throw new RpcException({
+      status: 403,
+      message: 'Forbidden: Invalid refresh token'
+    });
 
     const matches = await bcrypt.compare(token, user.refreshToken);
 
-    if (!matches) throw new UnauthorizedException('Invalid token');
+    if (!matches) throw new RpcException({
+      status: 401,
+      message: 'Invalid token'
+    });
 
     const tokens = await this.generateTokens(userId, user.username, user.role);
     await this.updateRefreshToken(userId, tokens.refreshToken);
@@ -326,7 +336,10 @@ export class AuthService {
     });
 
     if(!loggedOutUser){
-      throw new BadRequestException('No user to Logout');
+      throw new RpcException({
+        status: 400,
+        message: 'No user to Logout'
+      });
     }
 
     return {
@@ -340,7 +353,10 @@ export class AuthService {
 
     // Check if new password is the same as old password
     if (oldPassword === newPassword) {
-      throw new BadRequestException('New password must be different from the old password');
+      throw new RpcException({
+        status: 400,
+        message: 'New password must be different from the old password'
+      });
     }
 
     const user = await this.prisma.user.findUnique({
@@ -350,13 +366,19 @@ export class AuthService {
     });
 
     if(!user) {
-      throw new UnauthorizedException('User not found');
+      throw new RpcException({
+        status: 401,
+        message: 'User not found'
+      });
     }
 
     // Verify old password
     const isOldPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
     if(!isOldPasswordValid) {
-      throw new UnauthorizedException('Incorrect old password');
+      throw new RpcException({
+        status: 401,
+        message: 'Incorrect old password'
+      });
     }
 
     const hashedPassword = await this.generateHash(newPassword);
@@ -373,7 +395,10 @@ export class AuthService {
     });
 
     if(!updatedUser) {
-      throw new BadRequestException('Failed to update password');
+      throw new RpcException({
+        status: 400,
+        message: 'Failed to update password'
+      });
     }
 
     return {
