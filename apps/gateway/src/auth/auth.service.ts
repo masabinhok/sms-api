@@ -18,6 +18,7 @@ export class AuthService implements OnModuleInit {
       this.authClient.subscribeToResponseOf('user.logout');
       this.authClient.subscribeToResponseOf('admin.createProfile');
       this.authClient.subscribeToResponseOf('user.changePassword');
+      this.authClient.subscribeToResponseOf('user.me');
       await this.authClient.connect();
       
       // Wait a bit for subscriptions to be fully established
@@ -165,4 +166,26 @@ export class AuthService implements OnModuleInit {
       throw error; // Re-throw the converted HTTP exception
     }
   }
+
+  async getMe(userId: string){
+    await this.ensureClientReady();
+
+    try {
+      return await firstValueFrom(
+        this.authClient.send('user.me', {userId}).pipe(
+          timeout(5000), 
+          catchError(err => {
+            console.error('Auth service get profile error:', err);
+            const httpError = this.convertRpcExceptionToHttp(err);
+            return throwError(() => httpError) ;
+          })
+        )
+      )
+    }
+      catch(error){
+        console.error('Fetching user profile failed',error);
+        throw error;  //rethrow the converted http exception.
+      }
+  }
+
 }

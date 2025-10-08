@@ -1,4 +1,4 @@
-import { Body, Controller,  Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller,  Get,  Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
 import { Request, Response } from 'express';
@@ -107,5 +107,12 @@ export class AuthController {
     return this.authService.createAdminProfile(data);
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/me')
+  async getMe(
+    @GetUser('sub') userId: string
+  ){
+    return this.authService.getMe(userId);
+  }
 
 }

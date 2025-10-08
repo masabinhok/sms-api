@@ -47,5 +47,10 @@ export class AuthController {
     return this.authService.handlePasswordChange(payload);
   }
 
+  @MessagePattern('user.me')
+  async handleGetMe(@Payload() payload: {userId: string}){
+    return this.authService.handleGetMe(payload.userId)
+  }
+
 
 }

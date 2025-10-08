@@ -6,7 +6,7 @@ import { PrismaService } from './prisma.service';
 import { HandleTeacherCreatedDto } from 'apps/libs/dtos/handle-teacher-created.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
-import { Role } from '../generated/prisma';
+import { Role, User } from '../generated/prisma';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PasswordChangeDto } from '../dtos/password-change.dto';
@@ -404,6 +404,37 @@ export class AuthService {
       success: true,
       message: 'Password changed successfully'
     };
+  }
+
+  async getSafeUser(user: User){
+    const {passwordHash, refreshToken, ...safeUser} = user;
+    console.log(safeUser)
+    return safeUser;
+  }
+
+
+   async handleGetMe(userId: string){
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    });
+    console.log(user);
+    //already authenticated, but also double check 
+    if(!user){
+      throw new RpcException({
+        status: 400, 
+        message: 'User not found!'
+      })
+    }
+    //extract sensitive info like passwordHash and refreshToken
+    const safeUser = await this.getSafeUser(user);
+    console.log(safeUser)
+    return {
+      success: true, 
+      message: 'User found successfully.',
+      user: safeUser
+    }
   }
 
 }
