@@ -2,21 +2,19 @@ import { NestFactory } from '@nestjs/core';
 import { GatewayModule } from './gateway.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
+import { 
+  gatewaySwaggerConfig, 
+  swaggerDocumentOptions, 
+  swaggerUiOptions 
+} from 'apps/libs/config/swagger.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(GatewayModule);
 
-  //swagger
-  const config = new DocumentBuilder()
-  .setTitle('SMS Gateway API')
-  .setDescription('API documentation for the SMS Gateway')
-  .setVersion('1.0')
-  .addTag('sms')
-  .build();
-
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory());
+  // Swagger Documentation Setup
+  const document = SwaggerModule.createDocument(app, gatewaySwaggerConfig, swaggerDocumentOptions);
+  SwaggerModule.setup('api/docs', app, document, swaggerUiOptions);
 
   // Enable global validation
   app.useGlobalPipes(

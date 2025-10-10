@@ -8,11 +8,50 @@ import { AuthGuard } from 'apps/libs/guards/auth.guard';
 import { RolesGuard } from 'apps/libs/guards/roles.guard';
 import { Roles } from 'apps/libs/decorators/roles.decorator';
 import { PasswordChangeDto } from 'apps/libs/dtos/password-change.dto';
+import { 
+  ApiTags, 
+  ApiOperation, 
+  ApiResponse, 
+  ApiBody, 
+  ApiBearerAuth, 
+  ApiCookieAuth,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  ApiBadRequestResponse
+} from '@nestjs/swagger';
+import { 
+  LoginResponseDto, 
+  LogoutResponseDto, 
+  RefreshTokenResponseDto, 
+  UserProfileDto, 
+  ErrorResponseDto,
+  ApiResponseDto,
+  AdminCreateProfileDto
+} from 'apps/libs/dtos/response.dto';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({
+    summary: 'User login',
+    description: 'Authenticate user with username, password, and role. Sets HTTP-only cookies for access and refresh tokens.'
+  })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful. Tokens set in cookies.',
+    type: LoginResponseDto
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid credentials or validation errors',
+    type: ErrorResponseDto
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication failed',
+    type: ErrorResponseDto
+  })
   @Post('/login')
   async handleUserLogin(@Body() loginDto: LoginDto, @Res({passthrough: true}) res : Response) {
     const {accessToken, refreshToken} = await this.authService.handleUserLogin(loginDto);
@@ -37,6 +76,20 @@ export class AuthController {
     
   }
 
+  @ApiOperation({
+    summary: 'User logout',
+    description: 'Logout user and clear authentication cookies. Requires valid refresh token.'
+  })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({
+    status: 200,
+    description: 'Logout successful. Cookies cleared.',
+    type: LogoutResponseDto
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired refresh token',
+    type: ErrorResponseDto
+  })
   @UseGuards(RefreshTokenGuard)
   @Post('/logout')
   async handleUserLogout(
@@ -61,6 +114,20 @@ export class AuthController {
     };
   }
 
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description: 'Generate new access and refresh tokens using valid refresh token. Updates cookies with new tokens.'
+  })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({
+    status: 200,
+    description: 'Token refresh successful. New tokens set in cookies.',
+    type: RefreshTokenResponseDto
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired refresh token',
+    type: ErrorResponseDto
+  })
   @UseGuards(RefreshTokenGuard)
   @Post('/refresh')
   async handleUserRefresh(
@@ -92,6 +159,25 @@ export class AuthController {
     };
   }
 
+  @ApiOperation({
+    summary: 'Change user password',
+    description: 'Allow authenticated users to change their password. Requires current password verification.'
+  })
+  @ApiCookieAuth('access_token')
+  @ApiBody({ type: PasswordChangeDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
+    type: ApiResponseDto
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid current password or validation errors',
+    type: ErrorResponseDto
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication required',
+    type: ErrorResponseDto
+  })
   @UseGuards(AuthGuard)
   @Post('/change-password')
   async handlePasswordChange(
@@ -100,6 +186,29 @@ export class AuthController {
     return this.authService.handlePasswordChange(passwordChangeDto, userId);
   }
 
+  @ApiOperation({
+    summary: 'Create admin profile',
+    description: 'Create a new admin user profile. Only accessible by existing admins.'
+  })
+  @ApiCookieAuth('access_token')
+  @ApiBody({ type: AdminCreateProfileDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Admin profile created successfully',
+    type: ApiResponseDto
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation errors or email already exists',
+    type: ErrorResponseDto
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication required',
+    type: ErrorResponseDto
+  })
+  @ApiForbiddenResponse({
+    description: 'Admin role required',
+    type: ErrorResponseDto
+  })
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Post('/admin')
@@ -107,6 +216,20 @@ export class AuthController {
     return this.authService.createAdminProfile(data);
   }
 
+  @ApiOperation({
+    summary: 'Get current user profile',
+    description: 'Retrieve the profile information of the currently authenticated user.'
+  })
+  @ApiCookieAuth('access_token')
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+    type: UserProfileDto
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication required',
+    type: ErrorResponseDto
+  })
   @UseGuards(AuthGuard)
   @Get('/me')
   async getMe(
