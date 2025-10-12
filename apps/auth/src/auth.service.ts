@@ -54,7 +54,7 @@ export class AuthService {
       const hashedPassword = await this.generateHash(adminData.password);
 
       // Create admin user
-      const admin = await this.prisma.user.create({
+       await this.prisma.user.create({
         data: {
           username: adminData.username,
           passwordHash: hashedPassword,
@@ -78,7 +78,6 @@ export class AuthService {
         message: 'Admin profile created successfully',
         adminData: {
           username: adminData.username,
-          password: adminData.password, // Return for initial setup
           email: adminData.email,
           fullName: adminData.fullName
         }
