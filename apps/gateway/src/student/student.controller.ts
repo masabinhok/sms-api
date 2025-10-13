@@ -55,7 +55,7 @@ export class StudentController {
   })
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
-  @Post()
+  @Post('/create-profile')
   async createStudentProfile(@Body() createStudentProfileDto: CreateStudentProfileDto){
     return this.studentService.createStudentProfile(createStudentProfileDto);
   }
