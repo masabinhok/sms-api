@@ -6,11 +6,13 @@ import {
   IsIn, 
   Length, 
   Matches,
-  IsISO8601
+  IsISO8601,
+  IsEnum
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { normalizeISODate } from '../utils/utils';
+import { Class } from './create-teacher-profile.dto';
 
 export class CreateStudentProfileDto {
   @ApiProperty({
@@ -59,15 +61,15 @@ export class CreateStudentProfileDto {
   @IsIn(['Male', 'Female', 'Other'], { message: 'Gender must be Male, Female, or Other' })
   gender?: string;
 
-  @ApiProperty({
-    description: 'Class/Grade of the student',
-    example: '10th Grade',
-    type: String
+ @ApiProperty({
+  description: 'Class/Grade of the student',
+  enum: Class,           // Use the enum here
+  example: Class.TENTH,  // Example from enum
+  enumName: 'Class',
   })
-  @IsString()
+  @IsEnum(Class, { message: 'Class must be a valid class' })
   @IsNotEmpty({ message: 'Class is required' })
-  @Transform(({ value }) => value?.trim())
-  class: string;
+  class: Class;
 
   @ApiProperty({
     description: 'Section of the student within the class',
