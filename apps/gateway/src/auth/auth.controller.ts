@@ -210,7 +210,7 @@ export class AuthController {
     type: ErrorResponseDto
   })
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles('SUPERADMIN')
   @Post('/create-admin')
   async createAdminProfile(@Body() data: {name: string, email: string}){
     return this.authService.createAdminProfile(data);
