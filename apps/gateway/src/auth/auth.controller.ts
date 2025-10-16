@@ -1,4 +1,5 @@
 import { Body, Controller,  Get,  Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Param, Put, Delete } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
 import { Request, Response } from 'express';
@@ -236,6 +237,38 @@ export class AuthController {
     @GetUser('sub') userId: string
   ){
     return this.authService.getMe(userId);
+  }
+
+  // Admin management endpoints (proxy to auth microservice)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('SUPERADMIN')
+  @Get('/admins')
+  async listAdmins(@Req() req: Request) {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+    return this.authService.listAdmins({ page, limit, search });
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('SUPERADMIN')
+  @Get('/admins/:id')
+  async getAdmin(@Param('id') id: string) {
+    return this.authService.getAdmin(id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('SUPERADMIN')
+  @Put('/admins/:id')
+  async updateAdmin(@Param('id') id: string, @Body() body: any) {
+    return this.authService.updateAdmin(id, body);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('SUPERADMIN')
+  @Delete('/admins/:id')
+  async deleteAdmin(@Param('id') id: string) {
+    return this.authService.deleteAdmin(id);
   }
 
 }

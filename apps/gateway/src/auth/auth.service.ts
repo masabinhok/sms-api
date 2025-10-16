@@ -18,6 +18,10 @@ export class AuthService implements OnModuleInit {
       this.authClient.subscribeToResponseOf('user.logout');
       this.authClient.subscribeToResponseOf('admin.createProfile');
       this.authClient.subscribeToResponseOf('user.changePassword');
+      this.authClient.subscribeToResponseOf('admin.delete');
+      this.authClient.subscribeToResponseOf('admin.list');
+      this.authClient.subscribeToResponseOf('admin.update');
+      this.authClient.subscribeToResponseOf('admin.get');
       this.authClient.subscribeToResponseOf('user.me');
       await this.authClient.connect();
       
@@ -144,6 +148,83 @@ export class AuthService implements OnModuleInit {
     } catch (error) {
       console.error('Admin creation failed:', error.message);
       throw error; // Re-throw the converted HTTP exception
+    }
+  }
+
+  // Admin management proxy methods
+  async listAdmins(params: { page?: number; limit?: number; search?: string }) {
+    await this.ensureClientReady();
+    try {
+      return await firstValueFrom(
+        this.authClient.send('admin.list', params).pipe(
+          timeout(5000),
+          catchError(err => {
+            console.error('Auth service admin.list error:', err);
+            const httpError = this.convertRpcExceptionToHttp(err);
+            return throwError(() => httpError);
+          })
+        )
+      );
+    } catch (error) {
+      console.error('admin.list failed:', error.message);
+      throw error;
+    }
+  }
+
+  async getAdmin(id: string) {
+    await this.ensureClientReady();
+    try {
+      return await firstValueFrom(
+        this.authClient.send('admin.get', { id }).pipe(
+          timeout(5000),
+          catchError(err => {
+            console.error('Auth service admin.get error:', err);
+            const httpError = this.convertRpcExceptionToHttp(err);
+            return throwError(() => httpError);
+          })
+        )
+      );
+    } catch (error) {
+      console.error('admin.get failed:', error.message);
+      throw error;
+    }
+  }
+
+  async updateAdmin(id: string, data: any) {
+    await this.ensureClientReady();
+    try {
+      return await firstValueFrom(
+        this.authClient.send('admin.update', { id, data }).pipe(
+          timeout(5000),
+          catchError(err => {
+            console.error('Auth service admin.update error:', err);
+            const httpError = this.convertRpcExceptionToHttp(err);
+            return throwError(() => httpError);
+          })
+        )
+      );
+    } catch (error) {
+      console.error('admin.update failed:', error.message);
+      throw error;
+    }
+  }
+
+  async deleteAdmin(id: string) {
+    await this.ensureClientReady();
+    try {
+      return await firstValueFrom(
+        this.authClient.send('admin.delete', { id }).pipe(
+          timeout(5000),
+          catchError(err => {
+            console.error('Auth service admin.delete error:', err);
+            const httpError = this.convertRpcExceptionToHttp(err);
+            return throwError(() => httpError);
+          })
+        )
+      );
+    } catch (error) {
+      console.error('admin.delete failed:', error.message);
+      throw error;
     }
   }
 

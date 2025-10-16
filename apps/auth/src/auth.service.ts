@@ -398,12 +398,76 @@ export class AuthService {
         message: 'Failed to update password'
       });
     }
-
     return {
       success: true,
       message: 'Password changed successfully'
     };
   }
+
+  // Admin CRUD implementations
+  async listAdmins(payload: { page?: number; limit?: number; search?: string }) {
+    const page = payload.page ?? 1;
+    const limit = payload.limit ?? 10;
+    const where: any = { role: 'ADMIN' };
+    if (payload.search) {
+      where.OR = [
+        { username: { contains: payload.search, mode: 'insensitive' } },
+        { profileEmail: { contains: payload.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' }
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      data: data.map(u => ({ id: u.id, username: u.username, email: u.profileEmail, createdAt: u.createdAt })),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      }
+    };
+  }
+
+  async getAdmin(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user || user.role !== 'ADMIN') {
+      throw new RpcException({ status: 404, message: 'Admin not found' });
+    }
+  return { id: user.id, username: user.username, email: user.profileEmail, createdAt: user.createdAt };
+  }
+
+  async updateAdmin(id: string, data: any) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user || user.role !== 'ADMIN') {
+      throw new RpcException({ status: 404, message: 'Admin not found' });
+    }
+
+    const updated = await this.prisma.user.update({ where: { id }, data: {
+      profileEmail: data.email ?? user.profileEmail,
+    }});
+
+    return { id: updated.id, username: updated.username, email: updated.profileEmail, createdAt: updated.createdAt };
+  }
+
+  async deleteAdmin(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user || user.role !== 'ADMIN') {
+      throw new RpcException({ status: 404, message: 'Admin not found' });
+    }
+
+    await this.prisma.user.delete({ where: { id } });
+    return { success: true, message: 'Admin deleted' };
+  }
+ 
 
   async getSafeUser(user: User){
     const {passwordHash, refreshToken, ...safeUser} = user;

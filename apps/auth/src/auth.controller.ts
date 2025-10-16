@@ -42,6 +42,26 @@ export class AuthController {
       return this.authService.createAdminProfile(payload);
   }
 
+  @MessagePattern('admin.list')
+  async listAdmins(@Payload() payload: { page?: number; limit?: number; search?: string }){
+    return this.authService.listAdmins(payload);
+  }
+
+  @MessagePattern('admin.get')
+  async getAdmin(@Payload() payload: { id: string }){
+    return this.authService.getAdmin(payload.id);
+  }
+
+  @MessagePattern('admin.update')
+  async updateAdmin(@Payload() payload: { id: string; data: any }){
+    return this.authService.updateAdmin(payload.id, payload.data);
+  }
+
+  @MessagePattern('admin.delete')
+  async deleteAdmin(@Payload() payload: { id: string }){
+    return this.authService.deleteAdmin(payload.id);
+  }
+
   @MessagePattern('user.changePassword')
   async handlePasswordChange(@Payload() payload: PasswordChangeDto){
     return this.authService.handlePasswordChange(payload);
