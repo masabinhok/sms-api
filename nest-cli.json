@@ -10,6 +10,15 @@
   "monorepo": true,
   "root": "apps/api",
   "projects": {
+    "academics": {
+      "type": "application",
+      "root": "apps/academics",
+      "entryFile": "main",
+      "sourceRoot": "apps/academics/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/academics/tsconfig.app.json"
+      }
+    },
     "auth": {
       "type": "application",
       "root": "apps/auth",
