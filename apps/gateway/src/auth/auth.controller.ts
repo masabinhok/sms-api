@@ -55,7 +55,7 @@ export class AuthController {
   })
   @Post('/login')
   async handleUserLogin(@Body() loginDto: LoginDto, @Res({passthrough: true}) res : Response) {
-    const {accessToken, refreshToken} = await this.authService.handleUserLogin(loginDto);
+    const {accessToken, refreshToken, passwordChangeCount} = await this.authService.handleUserLogin(loginDto);
 
     res.cookie('access_token', accessToken, {
       httpOnly: true,
@@ -73,6 +73,8 @@ export class AuthController {
 
     return {
       message: 'Logged In Successfully',
+      requiresPasswordChange: passwordChangeCount === 0,
+      passwordChangeCount
     };
     
   }

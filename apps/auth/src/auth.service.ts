@@ -269,6 +269,7 @@ export class AuthService {
   async handleUserLogin(loginDto: LoginDto): Promise<{
     accessToken: string;
     refreshToken: string;
+    passwordChangeCount: number;
   }> {
     const { username, password, role} = loginDto;
     const user = await this.prisma.user.findFirst({
@@ -288,7 +289,10 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, username, user.role);
 
     await this.updateRefreshToken(user.id, tokens.refreshToken);
-    return tokens;
+    return {
+      ...tokens,
+      passwordChangeCount: user.passwordChangeCount
+    };
   }
 
   // refresh token
@@ -387,6 +391,7 @@ export class AuthService {
       }, 
       data: {
         passwordHash: hashedPassword,
+        passwordChangeCount: user.passwordChangeCount + 1,
         // Clear refresh token to force re-login with new password
         refreshToken: null
       }

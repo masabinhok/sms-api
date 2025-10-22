@@ -71,7 +71,7 @@ export class AuthService implements OnModuleInit {
     }
   }
 
-  async handleUserLogin(loginDto: LoginDto): Promise<{accessToken: string, refreshToken: string}> {
+  async handleUserLogin(loginDto: LoginDto): Promise<{accessToken: string, refreshToken: string, passwordChangeCount: number}> {
     await this.ensureClientReady();
     
     try {
