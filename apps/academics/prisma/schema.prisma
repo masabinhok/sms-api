@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("ACADEMICS_DATABASE_URL")
+}
+
+
+// academics service will be for School Class and Subject
+
+model School {
+  id String @id @default(uuid())
+  
+  // Basic Information
+  name String
+  tagline String
+  motto String
+  
+  // Contact Information
+  address String
+  city String
+  phone String
+  email String
+  
+  // Social Media
+  facebook String
+  instagram String
+  twitter String
+  youtube String
+  
+  // About Information
+  description String @db.Text
+  mission String @db.Text
+  vision String @db.Text
+  
+  // Hero Section
+  heroTitle String
+  heroSubtitle String
+  heroCTA String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Class {
+  id String @id @default(uuid())
+  name String // e.g., "Grade 1", "Class 10", "Nursery"
+  slug String @unique()
+  grade Int // Numeric grade level (1-12, 0 for pre-primary)
+  section String? // e.g., "A", "B", "C" - optional for schools without sections
+  capacity Int @default(40) // Maximum students allowed
+  
+  // Academic year
+  academicYear String // e.g., "2024-2025"
+  
+  // Relationships
+  subjects ClassSubject[] // Many-to-many with subjects
+  
+  // Metadata
+  isActive Boolean @default(true)
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([grade, section, academicYear])
+  @@index([academicYear])
+  @@index([isActive])
+}
+
+model Subject {
+  id String @id @default(uuid())
+  name String // e.g., "Mathematics", "English", "Science"
+  slug String @unique()
+  code String @unique() // e.g., "MATH101", "ENG101"
+  
+  // Subject details
+  description String? @db.Text
+  category String? // e.g., "Core", "Elective", "Extra-curricular"
+  creditHours Int @default(0) // For higher grades
+  
+  // Grading
+  fullMarks Int @default(100)
+  passMarks Int @default(40)
+  hasTheory Boolean @default(true)
+  hasPractical Boolean @default(false)
+  theoryMarks Int? // If separate theory/practical
+  practicalMarks Int? // If separate theory/practical
+  
+  // Relationships
+  classes ClassSubject[] // Many-to-many with classes
+  
+  // Metadata
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([category])
+  @@index([isActive])
+}
+
+// Junction table for Class-Subject many-to-many relationship
+model ClassSubject {
+  id String @id @default(uuid())
+  
+  classId String
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  subjectId String
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  // Subject-specific settings for this class
+  isCompulsory Boolean @default(true)
+  weeklyPeriods Int @default(5) // Number of periods per week
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([classId, subjectId])
+  @@index([classId])
+  @@index([subjectId])
+}
