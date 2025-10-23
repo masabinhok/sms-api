@@ -1,21 +1,21 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Patch, Post } from '@nestjs/common';
 import { AcademicsService } from './academics.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateSchoolDto } from 'apps/libs/dtos/create-school.dto';
 import { UpdateSchoolDto } from 'apps/libs/dtos/update-school.dto';
 
-@Controller()
+@Controller('academics')
 export class AcademicsController {
   constructor(private readonly academicsService: AcademicsService) {}
 
-  @MessagePattern('school.create')
-  async createSchool(@Payload() createSchoolDto: CreateSchoolDto){
-            console.log('Check')
+  @Post('/create-school')
+  async createSchool(@Body() createSchoolDto: CreateSchoolDto){
+    console.log('check');
     return this.academicsService.createSchool(createSchoolDto);
   }
 
-  @MessagePattern('school.update')
-  async updateSchool(@Payload() updateSchoolDto: UpdateSchoolDto){
+  @Patch('/update-school')
+  async updateSchool(@Body() updateSchoolDto: UpdateSchoolDto){
     return this.academicsService.updateSchool(updateSchoolDto);
   }
+
 }

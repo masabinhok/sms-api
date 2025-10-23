@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AcademicsModule } from './academics.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { Partitioners } from '@nestjs/microservices/external/kafka.interface';
+import { Partitioners } from 'kafkajs';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AcademicsModule, {

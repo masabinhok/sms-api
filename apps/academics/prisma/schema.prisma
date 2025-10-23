@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -17,39 +17,39 @@ datasource db {
 
 // academics service will be for School Class and Subject
 
-model School {
-  id String @id @default(uuid())
-  
-  // Basic Information
-  name String
-  tagline String
-  motto String
-  
-  // Contact Information
-  address String
-  city String
-  phone String
-  email String
-  
-  // Social Media
-  facebook String
-  instagram String
-  twitter String
-  youtube String
-  
-  // About Information
-  description String @db.Text
-  mission String @db.Text
-  vision String @db.Text
-  
-  // Hero Section
-  heroTitle String
-  heroSubtitle String
-  heroCTA String
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+  model School {
+    id String @id @default(uuid())
+    
+    // Basic Information
+    name String
+    tagline String
+    motto String
+    
+    // Contact Information
+    address String
+    city String
+    phone String
+    email String
+    
+    // Social Media
+    facebook String
+    instagram String
+    twitter String
+    youtube String
+    
+    // About Information
+    description String @db.Text
+    mission String @db.Text
+    vision String @db.Text
+    
+    // Hero Section
+    heroTitle String
+    heroSubtitle String
+    heroCTA String
+    
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+  }
 
 model Class {
   id String @id @default(uuid())

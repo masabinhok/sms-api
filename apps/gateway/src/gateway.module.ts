@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AcademicsModule } from './academics/academics.module';
 
 @Module({
   imports: [StudentModule, TeacherModule, AuthModule,
@@ -18,6 +19,7 @@ import { ConfigModule } from '@nestjs/config';
      JwtModule.register({
           global: true,
         }),
+     AcademicsModule,
         
   ],
   controllers: [GatewayController],
