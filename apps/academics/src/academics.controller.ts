@@ -9,9 +9,12 @@ export class AcademicsController {
   constructor(private readonly academicsService: AcademicsService) {}
 
   @MessagePattern('school.create')
-  async createSchool(@Payload() createSchoolDto: CreateSchoolDto){
-            console.log('Check')
-    return this.academicsService.createSchool(createSchoolDto);
+  async createSchool(@Payload() payload: {
+    createSchoolDto: CreateSchoolDto;
+    userId: string;
+  }){
+    console.log('Check')
+    return this.academicsService.createSchool(payload.createSchoolDto, payload.userId);
   }
 
   @MessagePattern('school.update')

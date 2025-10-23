@@ -71,6 +71,15 @@ export class AuthController {
   async handleGetMe(@Payload() payload: {userId: string}){
     return this.authService.handleGetMe(payload.userId)
   }
+  
+  @EventPattern('school.created')
+  async handleSchoolCreated(@Payload() payload: {
+    userId: string;
+    schoolId: string;
+    name: string;
+  }){
+    return this.authService.handleSchoolCreated(payload);
+  }
 
 
 }

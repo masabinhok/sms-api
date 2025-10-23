@@ -12,7 +12,7 @@ export class AcademicsService {
     private prisma: PrismaService
   ) {}
 
-  async createSchool(createSchoolDto: CreateSchoolDto){
+  async createSchool(createSchoolDto: CreateSchoolDto, userId: string){
     console.log('Check')
     const school = await this.prisma.school.create({
       data: createSchoolDto,
@@ -20,6 +20,7 @@ export class AcademicsService {
     console.log('Check2')
 
     this.authClient.emit('school.created', {
+      adminId: userId,
       schoolId: school.id,
       name: school.name,
     })

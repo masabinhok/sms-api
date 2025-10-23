@@ -24,12 +24,15 @@ export class AcademicsService {
         }
     }
 
-    async createSchool(createSchoolDto: CreateSchoolDto){
+    async createSchool(createSchoolDto: CreateSchoolDto, userId: string){
         if(!this.isClientReady){
             throw new Error('Academics service client not ready');
         }
         console.log('Check')
-        return firstValueFrom(this.academicsClient.send('school.create', createSchoolDto));
+        return firstValueFrom(this.academicsClient.send('school.create', {
+            createSchoolDto,
+            userId
+        }));
     }
 
     async updateSchool(updateSchoolDto: UpdateSchoolDto){

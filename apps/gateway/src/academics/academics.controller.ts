@@ -5,6 +5,7 @@ import { UpdateSchoolDto } from 'apps/libs/dtos/update-school.dto';
 import { RolesGuard } from 'apps/libs/guards/roles.guard';
 import { Roles } from 'apps/libs/decorators/roles.decorator';
 import { AuthGuard } from 'apps/libs/guards/auth.guard';
+import { GetUser } from 'apps/libs/decorators/get-user.decorator';
 @UseGuards(AuthGuard)
 @UseGuards(RolesGuard)
 @Roles('ADMIN')
@@ -13,9 +14,10 @@ export class AcademicsController {
   constructor(private readonly academicsService: AcademicsService) {}
 
   @Post('/create-school')
-  async createSchool(@Body() createSchoolDto: CreateSchoolDto){
+  async createSchool(@Body() createSchoolDto: CreateSchoolDto,
+ @GetUser('sub') userId: string,){
     console.log('check');
-    return this.academicsService.createSchool(createSchoolDto);
+    return this.academicsService.createSchool(createSchoolDto, userId);
   }
 
 
