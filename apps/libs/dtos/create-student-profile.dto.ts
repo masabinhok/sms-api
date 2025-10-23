@@ -131,4 +131,13 @@ export class CreateStudentProfileDto {
   @Length(5, 200, { message: 'Address must be between 5 and 200 characters' })
   @Transform(({ value }) => value?.trim())
   address?: string;
+
+  @ApiProperty({
+    description: 'User ID of the creator of this student profile',
+    example: 'admin-12345',
+    type: String
+  })
+  @IsString()
+  @IsNotEmpty({ message: 'CreatedBy is required' })
+  createdBy: string;
 }

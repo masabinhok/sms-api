@@ -141,4 +141,13 @@ export class CreateTeacherProfileDto {
   @IsEnum(Class, { each: true, message: 'Each class must be a valid class' })
   @IsOptional()
   classes?: Class[];
+
+    @ApiProperty({
+    description: 'User ID of the creator of this student profile',
+    example: 'admin-12345',
+    type: String
+  })
+  @IsString()
+  @IsNotEmpty({ message: 'CreatedBy is required' })
+  createdBy: string;
 }
