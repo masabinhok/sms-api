@@ -5,10 +5,12 @@ export class UpdateClassDto {
     @ApiProperty({
         description: 'Class ID',
         example: 'class-uuid',
-        type: String
+        type: String,
+        required: false
     })
     @IsString()
-    id: string;
+    @IsOptional()
+    id?: string;
 
     @ApiProperty({
         description: 'Class name',

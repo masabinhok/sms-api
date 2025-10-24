@@ -5,10 +5,12 @@ export class UpdateSubjectDto {
     @ApiProperty({
         description: 'Subject ID',
         example: 'subject-uuid',
-        type: String
+        type: String,
+        required: false
     })
     @IsString()
-    id: string;
+    @IsOptional()
+    id?: string;
 
     @ApiProperty({
         description: 'Subject name',
