@@ -11,6 +11,7 @@ export class AcademicsService {
 
     async onModuleInit(){
         try {
+            this.academicsClient.subscribeToResponseOf('school.get');
             this.academicsClient.subscribeToResponseOf('school.update');
             await this.academicsClient.connect();
 
@@ -20,6 +21,13 @@ export class AcademicsService {
         } catch (error) {
             console.error('Error initializing Academics service client', error);
         }
+    }
+
+    async getSchool(){
+        if(!this.isClientReady){
+            throw new Error('Academics service client not ready');
+        }
+        return firstValueFrom(this.academicsClient.send('school.get', {}));
     }
 
     async updateSchool(updateSchoolDto: UpdateSchoolDto){

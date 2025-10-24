@@ -7,6 +7,11 @@ import { UpdateSchoolDto } from 'apps/libs/dtos/update-school.dto';
 export class AcademicsController {
   constructor(private readonly academicsService: AcademicsService) {}
 
+  @MessagePattern('school.get')
+  async getSchool(){
+    return this.academicsService.getSchool();
+  }
+
   @MessagePattern('school.update')
   async updateSchool(@Payload() updateSchoolDto: UpdateSchoolDto){
     return this.academicsService.updateSchool(updateSchoolDto);

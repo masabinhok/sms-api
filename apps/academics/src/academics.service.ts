@@ -9,6 +9,20 @@ export class AcademicsService {
     private prisma: PrismaService
   ) {}
 
+  async getSchool(){
+    const school = await this.prisma.school.findFirst();
+    if (!school) {
+      return {
+        message: 'No school found. Please run the seed script first.',
+        school: null
+      };
+    }
+    return {
+      message: 'School retrieved successfully',
+      school
+    };
+  }
+
   async updateSchool(updateSchoolDto: UpdateSchoolDto){
     const school = await this.prisma.school.update({
       where: {

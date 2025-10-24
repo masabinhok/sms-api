@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { AcademicsService } from './academics.service';
 import { UpdateSchoolDto } from 'apps/libs/dtos/update-school.dto';
 import { RolesGuard } from 'apps/libs/guards/roles.guard';
@@ -10,6 +10,11 @@ import { AuthGuard } from 'apps/libs/guards/auth.guard';
 @Controller('academics')
 export class AcademicsController {
   constructor(private readonly academicsService: AcademicsService) {}
+
+  @Get('/school')
+  async getSchool(){
+    return this.academicsService.getSchool();
+  }
 
   @Patch('/update-school')
   async updateSchool(@Body() updateSchoolDto: UpdateSchoolDto){
