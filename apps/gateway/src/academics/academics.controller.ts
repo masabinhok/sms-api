@@ -125,4 +125,14 @@ export class AcademicsController {
   async getClassSubjects(@Param('classId') classId: string) {
     return this.academicsService.getClassSubjects(classId);
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Delete('/classes/:classId/subjects/:subjectId')
+  async removeSubjectFromClass(
+    @Param('classId') classId: string,
+    @Param('subjectId') subjectId: string
+  ) {
+    return this.academicsService.removeSubjectFromClass(classId, subjectId);
+  }
 }

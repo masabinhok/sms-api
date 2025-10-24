@@ -37,6 +37,7 @@ export class AcademicsService {
             // Class-Subject assignment patterns
             this.academicsClient.subscribeToResponseOf('class.assignSubjects');
             this.academicsClient.subscribeToResponseOf('class.getSubjects');
+            this.academicsClient.subscribeToResponseOf('class.removeSubject');
             
             await this.academicsClient.connect();
 
@@ -152,5 +153,12 @@ export class AcademicsService {
             throw new Error('Academics service client not ready');
         }
         return firstValueFrom(this.academicsClient.send('class.getSubjects', { classId }));
+    }
+
+    async removeSubjectFromClass(classId: string, subjectId: string) {
+        if(!this.isClientReady){
+            throw new Error('Academics service client not ready');
+        }
+        return firstValueFrom(this.academicsClient.send('class.removeSubject', { classId, subjectId }));
     }
 }

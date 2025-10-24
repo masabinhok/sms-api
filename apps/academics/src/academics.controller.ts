@@ -89,4 +89,9 @@ export class AcademicsController {
   async getClassSubjects(@Payload() payload: { classId: string }) {
     return this.academicsService.getClassSubjects(payload.classId);
   }
+
+  @MessagePattern('class.removeSubject')
+  async removeSubjectFromClass(@Payload() payload: { classId: string; subjectId: string }) {
+    return this.academicsService.removeSubjectFromClass(payload.classId, payload.subjectId);
+  }
 }

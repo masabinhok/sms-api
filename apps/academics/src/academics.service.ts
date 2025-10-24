@@ -322,10 +322,23 @@ export class AcademicsService {
       throw new BadRequestException('One or more subjects not found');
     }
 
-    // Delete existing assignments for this class
-    await this.prisma.classSubject.deleteMany({
-      where: { classId },
+    // Check for already assigned subjects
+    const existingAssignments = await this.prisma.classSubject.findMany({
+      where: {
+        classId,
+        subjectId: { in: subjectIds },
+      },
     });
+
+    if (existingAssignments.length > 0) {
+      const alreadyAssigned = existingAssignments.map(a => {
+        const subject = existingSubjects.find(s => s.id === a.subjectId);
+        return subject?.name || a.subjectId;
+      });
+      throw new ConflictException(
+        `The following subjects are already assigned to this class: ${alreadyAssigned.join(', ')}`
+      );
+    }
 
     // Create new assignments
     const assignments = await Promise.all(
@@ -345,8 +358,9 @@ export class AcademicsService {
     );
 
     return {
-      message: 'Subjects assigned to class successfully',
+      message: `Successfully assigned ${assignments.length} subject(s) to class`,
       assignments,
+      total: assignments.length,
     };
   }
 
@@ -361,11 +375,53 @@ export class AcademicsService {
       include: {
         subject: true,
       },
+      orderBy: {
+        subject: {
+          name: 'asc',
+        },
+      },
+    });
+
+    return subjects;
+  }
+
+  async removeSubjectFromClass(classId: string, subjectId: string) {
+    // Verify class exists
+    const classExists = await this.prisma.class.findUnique({ where: { id: classId } });
+    if (!classExists) {
+      throw new NotFoundException(`Class with ID ${classId} not found`);
+    }
+
+    // Verify subject exists
+    const subjectExists = await this.prisma.subject.findUnique({ where: { id: subjectId } });
+    if (!subjectExists) {
+      throw new NotFoundException(`Subject with ID ${subjectId} not found`);
+    }
+
+    // Find the assignment
+    const assignment = await this.prisma.classSubject.findFirst({
+      where: {
+        classId,
+        subjectId,
+      },
+    });
+
+    if (!assignment) {
+      throw new NotFoundException(
+        `Subject ${subjectExists.name} is not assigned to this class`
+      );
+    }
+
+    // Delete the assignment
+    await this.prisma.classSubject.delete({
+      where: {
+        id: assignment.id,
+      },
     });
 
     return {
-      message: 'Class subjects retrieved successfully',
-      subjects,
+      message: `Successfully removed ${subjectExists.name} from class`,
+      removedSubject: subjectExists.name,
     };
   }
 }
