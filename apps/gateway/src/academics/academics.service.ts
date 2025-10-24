@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientKafkaProxy } from '@nestjs/microservices';
-import { CreateSchoolDto } from 'apps/libs/dtos/create-school.dto';
 import { UpdateSchoolDto } from 'apps/libs/dtos/update-school.dto';
 import { firstValueFrom } from 'rxjs';
 
@@ -12,7 +11,6 @@ export class AcademicsService {
 
     async onModuleInit(){
         try {
-            this.academicsClient.subscribeToResponseOf('school.create');
             this.academicsClient.subscribeToResponseOf('school.update');
             await this.academicsClient.connect();
 
@@ -22,17 +20,6 @@ export class AcademicsService {
         } catch (error) {
             console.error('Error initializing Academics service client', error);
         }
-    }
-
-    async createSchool(createSchoolDto: CreateSchoolDto, userId: string){
-        if(!this.isClientReady){
-            throw new Error('Academics service client not ready');
-        }
-
-        return firstValueFrom(this.academicsClient.send('school.create', {
-            createSchoolDto,
-            userId
-        }));
     }
 
     async updateSchool(updateSchoolDto: UpdateSchoolDto){

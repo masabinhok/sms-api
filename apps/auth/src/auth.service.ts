@@ -19,28 +19,6 @@ export class AuthService {
     private config: ConfigService
   ) {}
 
-  async handleSchoolCreated(payload: {schoolId: string; name: string, userId: string}) {
-    try{
-      const {schoolId, userId} = payload;
-
-      const updatedAdmin = await this.prisma.user.update({
-        where: {id: userId},
-        data: {
-          schoolId
-        }
-      });
-
-      if(!updatedAdmin){
-        throw new Error('Admin not found to associate school');
-      }
-
-    }catch(error){
-      console.error('Error handling school created event:', error);
-      throw new Error('Failed to handle school created event');
-    }
-  }
-
-
   async createAdminProfile(payload : {name: string, email: string}) {
     try {
       const {name, email} = payload;
