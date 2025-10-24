@@ -6,8 +6,7 @@ import { RolesGuard } from 'apps/libs/guards/roles.guard';
 import { Roles } from 'apps/libs/decorators/roles.decorator';
 import { AuthGuard } from 'apps/libs/guards/auth.guard';
 import { GetUser } from 'apps/libs/decorators/get-user.decorator';
-@UseGuards(AuthGuard)
-@UseGuards(RolesGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Roles('ADMIN')
 @Controller('academics')
 export class AcademicsController {
@@ -19,7 +18,6 @@ export class AcademicsController {
     console.log('check');
     return this.academicsService.createSchool(createSchoolDto, userId);
   }
-
 
   @Patch('/update-school')
   async updateSchool(@Body() updateSchoolDto: UpdateSchoolDto){
