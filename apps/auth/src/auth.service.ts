@@ -497,7 +497,7 @@ export class AuthService {
 
   async getSafeUser(user: User){
     const {passwordHash, refreshToken, ...safeUser} = user;
-    console.log(safeUser)
+
     return safeUser;
   }
 
@@ -508,7 +508,7 @@ export class AuthService {
         id: userId
       }
     });
-    console.log(user);
+
     //already authenticated, but also double check 
     if(!user){
       throw new RpcException({
@@ -518,7 +518,7 @@ export class AuthService {
     }
     //extract sensitive info like passwordHash and refreshToken
     const safeUser = await this.getSafeUser(user);
-    console.log(safeUser)
+
     return {
       success: true, 
       message: 'User found successfully.',

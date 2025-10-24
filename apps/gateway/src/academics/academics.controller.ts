@@ -14,8 +14,8 @@ export class AcademicsController {
 
   @Post('/create-school')
   async createSchool(@Body() createSchoolDto: CreateSchoolDto,
- @GetUser('sub') userId: string,){
-    console.log('check');
+  @GetUser('sub') userId: string,){
+
     return this.academicsService.createSchool(createSchoolDto, userId);
   }
 

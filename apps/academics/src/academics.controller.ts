@@ -13,7 +13,7 @@ export class AcademicsController {
     createSchoolDto: CreateSchoolDto;
     userId: string;
   }){
-    console.log('Check')
+
     return this.academicsService.createSchool(payload.createSchoolDto, payload.userId);
   }
 

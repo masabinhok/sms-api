@@ -28,7 +28,7 @@ export class AcademicsService {
         if(!this.isClientReady){
             throw new Error('Academics service client not ready');
         }
-        console.log('Check')
+
         return firstValueFrom(this.academicsClient.send('school.create', {
             createSchoolDto,
             userId
