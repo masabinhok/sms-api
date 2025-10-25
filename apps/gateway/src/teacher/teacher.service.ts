@@ -41,12 +41,12 @@ export class TeacherService implements OnModuleInit {
     return this.teacherClient.send('teacher.getById', id);
   }
 
-  async updateTeacher(id: string, updateTeacherProfileDto: UpdateTeacherProfileDto) {
-    return this.teacherClient.send('teacher.update', { id, updateTeacherProfileDto });
+  async updateTeacher(id: string, updateTeacherProfileDto: UpdateTeacherProfileDto, userId: string, userRole: string) {
+    return this.teacherClient.send('teacher.update', { id, updateTeacherProfileDto, userId, userRole });
   }
 
-  async deleteTeacher(id: string) {
-    return this.teacherClient.send('teacher.delete', id);
+  async deleteTeacher(id: string, userId: string, userRole: string) {
+    return this.teacherClient.send('teacher.delete', { id, userId, userRole });
   }
 
   async getTeacherStats() {

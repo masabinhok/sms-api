@@ -59,10 +59,11 @@ export class StudentController {
   @Post('/create-profile')
   async createStudentProfile(
     @Body() createStudentProfileDto: CreateStudentProfileDto,
-    @GetUser('sub') userId: string
+    @GetUser('sub') userId: string,
+    @GetUser('role') userRole: string
   ) {
-    // Add the logged-in user ID as createdBy
-    const dataWithCreator = { ...createStudentProfileDto, createdBy: userId };
+    // Add the logged-in user ID and role as createdBy and createdByRole
+    const dataWithCreator = { ...createStudentProfileDto, createdBy: userId, createdByRole: userRole };
     return this.studentService.createStudentProfile(dataWithCreator);
   }
 
@@ -124,9 +125,11 @@ export class StudentController {
   @Put(':id')
   async updateStudent(
     @Param('id') id: string,
-    @Body() updateStudentProfileDto: UpdateStudentProfileDto
+    @Body() updateStudentProfileDto: UpdateStudentProfileDto,
+    @GetUser('sub') userId: string,
+    @GetUser('role') userRole: string
   ){
-    return this.studentService.updateStudent(id, updateStudentProfileDto);
+    return this.studentService.updateStudent(id, updateStudentProfileDto, userId, userRole);
   }
 
   @ApiOperation({
@@ -144,8 +147,12 @@ export class StudentController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')
-  async deleteStudent(@Param('id') id: string){
-    return this.studentService.deleteStudent(id);
+  async deleteStudent(
+    @Param('id') id: string,
+    @GetUser('sub') userId: string,
+    @GetUser('role') userRole: string
+  ){
+    return this.studentService.deleteStudent(id, userId, userRole);
   }
 
   @ApiOperation({

@@ -41,12 +41,12 @@ export class StudentService implements OnModuleInit {
     return this.studentClient.send('student.getById', id);
   }
 
-  async updateStudent(id: string, updateStudentProfileDto: UpdateStudentProfileDto) {
-    return this.studentClient.send('student.update', { id, updateStudentProfileDto });
+  async updateStudent(id: string, updateStudentProfileDto: UpdateStudentProfileDto, userId: string, userRole: string) {
+    return this.studentClient.send('student.update', { id, updateStudentProfileDto, userId, userRole });
   }
 
-  async deleteStudent(id: string) {
-    return this.studentClient.send('student.delete', id);
+  async deleteStudent(id: string, userId: string, userRole: string) {
+    return this.studentClient.send('student.delete', { id, userId, userRole });
   }
 
   async getStudentStats() {

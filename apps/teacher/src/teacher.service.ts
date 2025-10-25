@@ -13,7 +13,8 @@ export class TeacherService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService, 
     @Inject('AUTH_SERVICE') private authClient: ClientProxy,
-    @Inject('ACADEMICS_SERVICE') private academicsClient: ClientKafka
+    @Inject('ACADEMICS_SERVICE') private academicsClient: ClientKafka,
+    @Inject('ACTIVITY_SERVICE') private activityClient: ClientProxy
   ) {}
 
   async onModuleInit() {
@@ -25,87 +26,85 @@ export class TeacherService implements OnModuleInit {
   }
 
   async createTeacherProfile(createTeacherProfileDto: CreateTeacherProfileDto) {
-    try {
-      console.log('=== TEACHER SERVICE CREATE ===');
-      console.log('DTO received:', JSON.stringify(createTeacherProfileDto, null, 2));
-      
-      // Validate class IDs if provided
-      if (createTeacherProfileDto.classIds && createTeacherProfileDto.classIds.length > 0) {
-        console.log('Validating class IDs:', createTeacherProfileDto.classIds);
-        for (const classId of createTeacherProfileDto.classIds) {
-          try {
-            const classResponse = await firstValueFrom(
-              this.academicsClient.send('class.getById', { id: classId })
-            );
-            
-            if (!classResponse || !classResponse.class) {
-              throw new BadRequestException(`Class with ID ${classId} not found`);
-            }
-          } catch (error) {
-            console.error('Class validation error:', error);
-            throw new BadRequestException(`Failed to validate class ${classId}: ${error.message}`);
+    // Validate class IDs if provided
+    if (createTeacherProfileDto.classIds && createTeacherProfileDto.classIds.length > 0) {
+      for (const classId of createTeacherProfileDto.classIds) {
+        try {
+          const classResponse = await firstValueFrom(
+            this.academicsClient.send('class.getById', { id: classId })
+          );
+          
+          if (!classResponse || !classResponse.class) {
+            throw new BadRequestException(`Class with ID ${classId} not found`);
           }
+        } catch (error) {
+          throw new BadRequestException(`Failed to validate class ${classId}: ${error.message}`);
         }
       }
+    }
 
-      // Validate subject IDs if provided
-      if (createTeacherProfileDto.subjectIds && createTeacherProfileDto.subjectIds.length > 0) {
-        console.log('Validating subject IDs:', createTeacherProfileDto.subjectIds);
-        for (const subjectId of createTeacherProfileDto.subjectIds) {
-          try {
-            const subjectResponse = await firstValueFrom(
-              this.academicsClient.send('subject.getById', { id: subjectId })
-            );
-            
-            if (!subjectResponse || !subjectResponse.subject) {
-              throw new BadRequestException(`Subject with ID ${subjectId} not found`);
-            }
-          } catch (error) {
-            console.error('Subject validation error:', error);
-            throw new BadRequestException(`Failed to validate subject ${subjectId}: ${error.message}`);
+    // Validate subject IDs if provided
+    if (createTeacherProfileDto.subjectIds && createTeacherProfileDto.subjectIds.length > 0) {
+      for (const subjectId of createTeacherProfileDto.subjectIds) {
+        try {
+          const subjectResponse = await firstValueFrom(
+            this.academicsClient.send('subject.getById', { id: subjectId })
+          );
+          
+          if (!subjectResponse || !subjectResponse.subject) {
+            throw new BadRequestException(`Subject with ID ${subjectId} not found`);
           }
+        } catch (error) {
+          throw new BadRequestException(`Failed to validate subject ${subjectId}: ${error.message}`);
         }
       }
+    }
 
-      // Ensure createdBy is set, throw error if missing
-      if (!createTeacherProfileDto.createdBy) {
-        console.error('createdBy is missing!');
-        throw new BadRequestException('createdBy field is required');
-      }
+    // Ensure createdBy is set, throw error if missing
+    if (!createTeacherProfileDto.createdBy) {
+      throw new BadRequestException('createdBy field is required');
+    }
 
-      console.log('Creating teacher with data...');
-      const teacher = await this.prisma.teacher.create({
-        data: {
-          fullName: createTeacherProfileDto.fullName,
-          email: createTeacherProfileDto.email,
-          gender: createTeacherProfileDto.gender,
-          phone: createTeacherProfileDto.phone,
-          address: createTeacherProfileDto.address,
-          dob: createTeacherProfileDto.dob,
-          subjectIds: createTeacherProfileDto.subjectIds || [],
-          classIds: createTeacherProfileDto.classIds || [],
-          createdBy: createTeacherProfileDto.createdBy,
-        },
-      });
-      
-      console.log('Teacher created:', teacher.id);
+    const teacher = await this.prisma.teacher.create({
+      data: {
+        fullName: createTeacherProfileDto.fullName,
+        email: createTeacherProfileDto.email,
+        gender: createTeacherProfileDto.gender,
+        phone: createTeacherProfileDto.phone,
+        address: createTeacherProfileDto.address,
+        dob: createTeacherProfileDto.dob,
+        subjectIds: createTeacherProfileDto.subjectIds || [],
+        classIds: createTeacherProfileDto.classIds || [],
+        createdBy: createTeacherProfileDto.createdBy,
+      },
+    });
 
-      // emit event for auth service to create login credentials for respective teacher
-      this.authClient.emit('teacher.created', {
+    // emit event for auth service to create login credentials for respective teacher
+    this.authClient.emit('teacher.created', {
+      email: teacher.email,
+      fullName: teacher.fullName,
+      teacherId: teacher.id,
+      dob: teacher.dob,
+    });
+
+    // Log activity - teacher profile created
+    this.activityClient.emit('activity.log', {
+      userId: createTeacherProfileDto.createdBy,
+      userRole: createTeacherProfileDto.createdByRole,
+      action: 'CREATE',
+      description: `Created teacher profile: ${teacher.fullName} (${teacher.email})`,
+      entityType: 'TEACHER',
+      entityId: teacher.id,
+      metadata: {
         email: teacher.email,
         fullName: teacher.fullName,
-        teacherId: teacher.id,
-        dob: teacher.dob,
-      });
+        phone: teacher.phone,
+        subjectCount: teacher.subjectIds?.length || 0,
+        classCount: teacher.classIds?.length || 0,
+      },
+    });
 
-      return teacher;
-    } catch (error) {
-      console.error('=== ERROR IN TEACHER SERVICE ===');
-      console.error('Error:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      throw error;
-    }
+    return teacher;
   }
 
   async getAllTeachers(query: QueryTeachersDto) {
@@ -175,7 +174,7 @@ export class TeacherService implements OnModuleInit {
     return teacher;
   }
 
-  async updateTeacher(id: string, updateTeacherProfileDto: UpdateTeacherProfileDto) {
+  async updateTeacher(id: string, updateTeacherProfileDto: UpdateTeacherProfileDto, userId: string, userRole: string) {
     // Check if teacher exists
     const existingTeacher = await this.prisma.teacher.findUnique({
       where: { id },
@@ -191,10 +190,23 @@ export class TeacherService implements OnModuleInit {
       data: updateTeacherProfileDto,
     });
 
+    // Log activity - teacher profile updated
+    this.activityClient.emit('activity.log', {
+      userId: userId,
+      userRole: userRole,
+      action: 'UPDATE',
+      description: `Updated teacher profile: ${updatedTeacher.fullName}`,
+      entityType: 'TEACHER',
+      entityId: updatedTeacher.id,
+      metadata: {
+        updates: updateTeacherProfileDto,
+      },
+    });
+
     return updatedTeacher;
   }
 
-  async deleteTeacher(id: string) {
+  async deleteTeacher(id: string, userId: string, userRole: string) {
     // Check if teacher exists
     const existingTeacher = await this.prisma.teacher.findUnique({
       where: { id },
@@ -213,6 +225,23 @@ export class TeacherService implements OnModuleInit {
     this.authClient.emit('teacher.deleted', {
       teacherId: id,
       email: existingTeacher.email,
+    });
+
+    // Log activity - teacher profile deleted
+    this.activityClient.emit('activity.log', {
+      userId: userId,
+      userRole: userRole,
+      action: 'DELETE',
+      description: `Deleted teacher profile: ${existingTeacher.fullName} (${existingTeacher.email})`,
+      entityType: 'TEACHER',
+      entityId: id,
+      metadata: {
+        deletedTeacher: {
+          fullName: existingTeacher.fullName,
+          email: existingTeacher.email,
+          phone: existingTeacher.phone,
+        },
+      },
     });
 
     return { success: true, message: 'Teacher deleted successfully' };

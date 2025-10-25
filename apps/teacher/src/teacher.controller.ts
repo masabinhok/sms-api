@@ -25,13 +25,13 @@ export class TeacherController {
   }
 
   @MessagePattern('teacher.update')
-  async updateTeacher(@Payload() data: { id: string; updateTeacherProfileDto: UpdateTeacherProfileDto }) {
-    return this.teacherService.updateTeacher(data.id, data.updateTeacherProfileDto);
+  async updateTeacher(@Payload() data: { id: string; updateTeacherProfileDto: UpdateTeacherProfileDto; userId: string; userRole: string }) {
+    return this.teacherService.updateTeacher(data.id, data.updateTeacherProfileDto, data.userId, data.userRole);
   }
 
   @MessagePattern('teacher.delete')
-  async deleteTeacher(@Payload() id: string) {
-    return this.teacherService.deleteTeacher(id);
+  async deleteTeacher(@Payload() data: { id: string; userId: string; userRole: string }) {
+    return this.teacherService.deleteTeacher(data.id, data.userId, data.userRole);
   }
 
   @MessagePattern('teacher.getStats')

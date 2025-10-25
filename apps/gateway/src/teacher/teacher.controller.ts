@@ -59,27 +59,12 @@ export class TeacherController {
   @Post('create-profile')
   async createTeacherProfile(
     @Body() data: CreateTeacherProfileDto,
-    @GetUser('sub') userId: string
+    @GetUser('sub') userId: string,
+    @GetUser('role') userRole: string
   ) {
-    try {
-      console.log('=== CREATE TEACHER DEBUG ===');
-      console.log('User ID:', userId);
-      console.log('Data received:', JSON.stringify(data, null, 2));
-      
-      // Add the logged-in user ID as createdBy
-      const dataWithCreator = { ...data, createdBy: userId };
-      console.log('Data with creator:', JSON.stringify(dataWithCreator, null, 2));
-      
-      const result = await this.teacherService.createTeacherProfile(dataWithCreator);
-      console.log('Result:', result);
-      return result;
-    } catch (error) {
-      console.error('=== ERROR IN CREATE TEACHER ===');
-      console.error('Error:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      throw error;
-    }
+    // Add the logged-in user ID and role as createdBy and createdByRole
+    const dataWithCreator = { ...data, createdBy: userId, createdByRole: userRole };
+    return this.teacherService.createTeacherProfile(dataWithCreator);
   }
 
   @ApiOperation({
@@ -140,9 +125,11 @@ export class TeacherController {
   @Put(':id')
   async updateTeacher(
     @Param('id') id: string,
-    @Body() updateTeacherProfileDto: UpdateTeacherProfileDto
+    @Body() updateTeacherProfileDto: UpdateTeacherProfileDto,
+    @GetUser('sub') userId: string,
+    @GetUser('role') userRole: string
   ) {
-    return this.teacherService.updateTeacher(id, updateTeacherProfileDto);
+    return this.teacherService.updateTeacher(id, updateTeacherProfileDto, userId, userRole);
   }
 
   @ApiOperation({
@@ -160,8 +147,12 @@ export class TeacherController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')
-  async deleteTeacher(@Param('id') id: string) {
-    return this.teacherService.deleteTeacher(id);
+  async deleteTeacher(
+    @Param('id') id: string,
+    @GetUser('sub') userId: string,
+    @GetUser('role') userRole: string
+  ) {
+    return this.teacherService.deleteTeacher(id, userId, userRole);
   }
 
   @ApiOperation({

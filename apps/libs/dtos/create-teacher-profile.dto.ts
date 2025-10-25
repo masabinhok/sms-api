@@ -114,4 +114,11 @@ export class CreateTeacherProfileDto {
   @IsString()
   @IsOptional()
   createdBy?: string;
+
+  // This field is automatically populated by the system with the logged-in user's role
+  // Do not send this from the frontend
+  @ValidateIf((o) => o.createdByRole !== undefined && o.createdByRole !== null)
+  @IsString()
+  @IsOptional()
+  createdByRole?: string;
 }

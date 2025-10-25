@@ -12,6 +12,7 @@ export class StudentService implements OnModuleInit {
   constructor(
     @Inject('AUTH_SERVICE') private authClient: ClientProxy,
     @Inject('ACADEMICS_SERVICE') private academicsClient: ClientKafka,
+    @Inject('ACTIVITY_SERVICE') private activityClient: ClientProxy,
     private prisma: PrismaService
   ){}
 
@@ -62,6 +63,24 @@ export class StudentService implements OnModuleInit {
       fullName: student.fullName,
       dob: student.dob,
       email: student.email
+    });
+
+    // Log activity - student profile created
+    this.activityClient.emit('activity.log', {
+      userId: createStudentProfileDto.createdBy,
+      userRole: createStudentProfileDto.createdByRole,
+      action: 'CREATE',
+      description: `Created student profile: ${student.fullName} (${student.email})`,
+      entityType: 'STUDENT',
+      entityId: student.id,
+      metadata: {
+        email: student.email,
+        fullName: student.fullName,
+        classId: student.classId,
+        rollNumber: student.rollNumber,
+        guardianName: student.guardianName,
+        guardianContact: student.guardianContact,
+      },
     });
 
     return student;
@@ -130,7 +149,7 @@ export class StudentService implements OnModuleInit {
     return student;
   }
 
-  async updateStudent(id: string, updateStudentProfileDto: UpdateStudentProfileDto) {
+  async updateStudent(id: string, updateStudentProfileDto: UpdateStudentProfileDto, userId: string, userRole: string) {
     // Check if student exists
     const existingStudent = await this.prisma.student.findUnique({
       where: { id },
@@ -146,10 +165,23 @@ export class StudentService implements OnModuleInit {
       data: updateStudentProfileDto,
     });
 
+    // Log activity - student profile updated
+    this.activityClient.emit('activity.log', {
+      userId: userId,
+      userRole: userRole,
+      action: 'UPDATE',
+      description: `Updated student profile: ${updatedStudent.fullName}`,
+      entityType: 'STUDENT',
+      entityId: updatedStudent.id,
+      metadata: {
+        updates: updateStudentProfileDto,
+      },
+    });
+
     return updatedStudent;
   }
 
-  async deleteStudent(id: string) {
+  async deleteStudent(id: string, userId: string, userRole: string) {
     // Check if student exists
     const existingStudent = await this.prisma.student.findUnique({
       where: { id },
@@ -168,6 +200,24 @@ export class StudentService implements OnModuleInit {
     this.authClient.emit('student.deleted', {
       studentId: id,
       email: existingStudent.email,
+    });
+
+    // Log activity - student profile deleted
+    this.activityClient.emit('activity.log', {
+      userId: userId,
+      userRole: userRole,
+      action: 'DELETE',
+      description: `Deleted student profile: ${existingStudent.fullName} (${existingStudent.email})`,
+      entityType: 'STUDENT',
+      entityId: id,
+      metadata: {
+        deletedStudent: {
+          fullName: existingStudent.fullName,
+          email: existingStudent.email,
+          classId: existingStudent.classId,
+          rollNumber: existingStudent.rollNumber,
+        },
+      },
     });
 
     return { success: true, message: 'Student deleted successfully' };

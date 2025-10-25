@@ -25,13 +25,13 @@ export class StudentController {
   }
 
   @MessagePattern('student.update')
-  async updateStudent(@Payload() data: { id: string; updateStudentProfileDto: UpdateStudentProfileDto }) {
-    return this.studentService.updateStudent(data.id, data.updateStudentProfileDto);
+  async updateStudent(@Payload() data: { id: string; updateStudentProfileDto: UpdateStudentProfileDto; userId: string; userRole: string }) {
+    return this.studentService.updateStudent(data.id, data.updateStudentProfileDto, data.userId, data.userRole);
   }
 
   @MessagePattern('student.delete')
-  async deleteStudent(@Payload() id: string) {
-    return this.studentService.deleteStudent(id);
+  async deleteStudent(@Payload() data: { id: string; userId: string; userRole: string }) {
+    return this.studentService.deleteStudent(data.id, data.userId, data.userRole);
   }
 
   @MessagePattern('student.getStats')
