@@ -38,7 +38,7 @@ export class AuthController {
   }
 
   @MessagePattern('admin.createProfile')
-  async createAdminProfile(@Payload() payload: {name: string, email: string}){
+  async createAdminProfile(@Payload() payload: {name: string, email: string, actorUserId?: string, actorUsername?: string, actorRole?: string}){
       return this.authService.createAdminProfile(payload);
   }
 
@@ -53,13 +53,13 @@ export class AuthController {
   }
 
   @MessagePattern('admin.update')
-  async updateAdmin(@Payload() payload: { id: string; data: any }){
-    return this.authService.updateAdmin(payload.id, payload.data);
+  async updateAdmin(@Payload() payload: { id: string; data: any; actorUserId?: string; actorUsername?: string; actorRole?: string }){
+    return this.authService.updateAdmin(payload.id, payload.data, payload);
   }
 
   @MessagePattern('admin.delete')
-  async deleteAdmin(@Payload() payload: { id: string }){
-    return this.authService.deleteAdmin(payload.id);
+  async deleteAdmin(@Payload() payload: { id: string; actorUserId?: string; actorUsername?: string; actorRole?: string }){
+    return this.authService.deleteAdmin(payload.id, payload);
   }
 
   @MessagePattern('user.changePassword')

@@ -215,8 +215,13 @@ export class AuthController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('SUPERADMIN')
   @Post('/create-admin')
-  async createAdminProfile(@Body() data: {name: string, email: string}){
-    return this.authService.createAdminProfile(data);
+  async createAdminProfile(
+    @Body() data: {name: string, email: string},
+    @GetUser('sub') userId: string,
+    @GetUser('username') username: string,
+    @GetUser('role') role: string
+  ){
+    return this.authService.createAdminProfile(data, userId, username, role);
   }
 
   @ApiOperation({
@@ -262,15 +267,26 @@ export class AuthController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('SUPERADMIN')
   @Put('/admins/:id')
-  async updateAdmin(@Param('id') id: string, @Body() body: any) {
-    return this.authService.updateAdmin(id, body);
+  async updateAdmin(
+    @Param('id') id: string, 
+    @Body() body: any,
+    @GetUser('sub') userId: string,
+    @GetUser('username') username: string,
+    @GetUser('role') role: string
+  ) {
+    return this.authService.updateAdmin(id, body, userId, username, role);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('SUPERADMIN')
   @Delete('/admins/:id')
-  async deleteAdmin(@Param('id') id: string) {
-    return this.authService.deleteAdmin(id);
+  async deleteAdmin(
+    @Param('id') id: string,
+    @GetUser('sub') userId: string,
+    @GetUser('username') username: string,
+    @GetUser('role') role: string
+  ) {
+    return this.authService.deleteAdmin(id, userId, username, role);
   }
 
 }

@@ -15,13 +15,14 @@ import { PasswordChangeDto } from '../dtos/password-change.dto';
 export class AuthService {
   constructor(private prisma: PrismaService, 
     @Inject('EMAIL_SERVICE') private emailClient: ClientProxy,
+    @Inject('ACTIVITY_SERVICE') private activityClient: ClientProxy,
     private jwtService: JwtService,
     private config: ConfigService
   ) {}
 
-  async createAdminProfile(payload : {name: string, email: string}) {
+  async createAdminProfile(payload : {name: string, email: string, actorUserId?: string, actorUsername?: string, actorRole?: string}) {
     try {
-      const {name, email} = payload;
+      const {name, email, actorUserId, actorUsername, actorRole} = payload;
       // Generate fake admin data
       const adminData = {
         username: `admin-${name}`,
@@ -53,7 +54,7 @@ export class AuthService {
       const hashedPassword = await this.generateHash(adminData.password);
 
       // Create admin user
-       await this.prisma.user.create({
+       const newAdmin = await this.prisma.user.create({
         data: {
           username: adminData.username,
           passwordHash: hashedPassword,
@@ -71,6 +72,20 @@ export class AuthService {
         password: adminData.password, 
         fullName: adminData.fullName 
       });
+
+      // Log activity
+      if (actorUserId) {
+        this.activityClient.emit('activity.log', {
+          userId: actorUserId,
+          userRole: actorRole || 'SUPERADMIN',
+          username: actorUsername || 'system',
+          action: 'CREATE',
+          description: `Created admin profile: ${adminData.username}`,
+          entityType: 'ADMIN',
+          entityId: newAdmin.id,
+          metadata: { email: adminData.email, username: adminData.username },
+        });
+      }
 
       return {
         success: true,
@@ -288,6 +303,18 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, username, user.role);
 
     await this.updateRefreshToken(user.id, tokens.refreshToken);
+    
+    // Log activity
+    this.activityClient.emit('activity.log', {
+      userId: user.id,
+      userRole: user.role,
+      username: user.username,
+      action: 'LOGIN',
+      description: `User ${user.username} logged in`,
+      entityType: 'USER',
+      entityId: user.id,
+    });
+
     return {
       ...tokens,
       passwordChangeCount: user.passwordChangeCount
@@ -342,6 +369,17 @@ export class AuthService {
         message: 'No user to Logout'
       });
     }
+
+    // Log activity
+    this.activityClient.emit('activity.log', {
+      userId: loggedOutUser.id,
+      userRole: loggedOutUser.role,
+      username: loggedOutUser.username,
+      action: 'LOGOUT',
+      description: `User ${loggedOutUser.username} logged out`,
+      entityType: 'USER',
+      entityId: loggedOutUser.id,
+    });
 
     return {
       success: true,
@@ -402,6 +440,18 @@ export class AuthService {
         message: 'Failed to update password'
       });
     }
+
+    // Log activity
+    this.activityClient.emit('activity.log', {
+      userId: updatedUser.id,
+      userRole: updatedUser.role,
+      username: updatedUser.username,
+      action: 'PASSWORD_CHANGE',
+      description: `User ${updatedUser.username} changed their password`,
+      entityType: 'USER',
+      entityId: updatedUser.id,
+    });
+
     return {
       success: true,
       message: 'Password changed successfully'
@@ -449,7 +499,7 @@ export class AuthService {
   return { id: user.id, username: user.username, email: user.profileEmail, createdAt: user.createdAt };
   }
 
-  async updateAdmin(id: string, data: any) {
+  async updateAdmin(id: string, data: any, actor?: { actorUserId?: string; actorUsername?: string; actorRole?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user || user.role !== 'ADMIN') {
       throw new RpcException({ status: 404, message: 'Admin not found' });
@@ -459,16 +509,45 @@ export class AuthService {
       profileEmail: data.email ?? user.profileEmail,
     }});
 
+    // Log activity
+    if (actor?.actorUserId) {
+      this.activityClient.emit('activity.log', {
+        userId: actor.actorUserId,
+        userRole: actor.actorRole || 'SUPERADMIN',
+        username: actor.actorUsername || 'system',
+        action: 'UPDATE',
+        description: `Updated admin profile: ${updated.username}`,
+        entityType: 'ADMIN',
+        entityId: updated.id,
+        metadata: { changes: data },
+      });
+    }
+
     return { id: updated.id, username: updated.username, email: updated.profileEmail, createdAt: updated.createdAt };
   }
 
-  async deleteAdmin(id: string) {
+  async deleteAdmin(id: string, actor?: { actorUserId?: string; actorUsername?: string; actorRole?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user || user.role !== 'ADMIN') {
       throw new RpcException({ status: 404, message: 'Admin not found' });
     }
 
     await this.prisma.user.delete({ where: { id } });
+
+    // Log activity
+    if (actor?.actorUserId) {
+      this.activityClient.emit('activity.log', {
+        userId: actor.actorUserId,
+        userRole: actor.actorRole || 'SUPERADMIN',
+        username: actor.actorUsername || 'system',
+        action: 'DELETE',
+        description: `Deleted admin profile: ${user.username}`,
+        entityType: 'ADMIN',
+        entityId: id,
+        metadata: { deletedUsername: user.username, deletedEmail: user.profileEmail },
+      });
+    }
+
     return { success: true, message: 'Admin deleted' };
   }
  

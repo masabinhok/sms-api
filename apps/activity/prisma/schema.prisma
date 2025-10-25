@@ -8,10 +8,61 @@ datasource db {
   url      = env("ACTIVITY_DATABASE_URL")
 }
 
+enum Role {
+  SUPERADMIN
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum ActionType {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  PASSWORD_CHANGE
+  VIEW
+  EXPORT
+}
+
+enum EntityType {
+  USER
+  STUDENT
+  TEACHER
+  ADMIN
+  CLASS
+  SUBJECT
+  ASSIGNMENT
+  GRADE
+  ATTENDANCE
+  SCHOOL_SETTINGS
+}
+
 model Activity {
   id String @id @default(uuid())
-  activity String 
   
+  // User who performed the action
   userId String
+  userRole Role
+  username String?
+  
+  // Action details
+  action ActionType
+  description String
+  
+  // Entity details
+  entityType EntityType
+  entityId String?
+  
+  // Additional context
+  metadata Json?
+  ipAddress String?
+  
   createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
 }

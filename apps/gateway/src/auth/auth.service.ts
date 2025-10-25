@@ -131,12 +131,12 @@ export class AuthService implements OnModuleInit {
     }
   }
 
-  async createAdminProfile(data: {name: string, email: string}) {
+  async createAdminProfile(data: {name: string, email: string}, actorUserId?: string, actorUsername?: string, actorRole?: string) {
     await this.ensureClientReady();
     
     try {
       return await firstValueFrom(
-        this.authClient.send('admin.createProfile', data).pipe(
+        this.authClient.send('admin.createProfile', { ...data, actorUserId, actorUsername, actorRole }).pipe(
           timeout(5000),
           catchError(err => {
             console.error('Auth service admin creation error:', err);
@@ -190,11 +190,11 @@ export class AuthService implements OnModuleInit {
     }
   }
 
-  async updateAdmin(id: string, data: any) {
+  async updateAdmin(id: string, data: any, actorUserId?: string, actorUsername?: string, actorRole?: string) {
     await this.ensureClientReady();
     try {
       return await firstValueFrom(
-        this.authClient.send('admin.update', { id, data }).pipe(
+        this.authClient.send('admin.update', { id, data, actorUserId, actorUsername, actorRole }).pipe(
           timeout(5000),
           catchError(err => {
             console.error('Auth service admin.update error:', err);
@@ -209,11 +209,11 @@ export class AuthService implements OnModuleInit {
     }
   }
 
-  async deleteAdmin(id: string) {
+  async deleteAdmin(id: string, actorUserId?: string, actorUsername?: string, actorRole?: string) {
     await this.ensureClientReady();
     try {
       return await firstValueFrom(
-        this.authClient.send('admin.delete', { id }).pipe(
+        this.authClient.send('admin.delete', { id, actorUserId, actorUsername, actorRole }).pipe(
           timeout(5000),
           catchError(err => {
             console.error('Auth service admin.delete error:', err);
