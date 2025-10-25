@@ -9,6 +9,7 @@ import { APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AcademicsModule } from './academics/academics.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
   imports: [StudentModule, TeacherModule, AuthModule,
@@ -20,6 +21,7 @@ import { AcademicsModule } from './academics/academics.module';
           global: true,
         }),
      AcademicsModule,
+     ActivityModule,
         
   ],
   controllers: [GatewayController],
