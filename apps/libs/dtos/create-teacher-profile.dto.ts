@@ -3,49 +3,16 @@ import {
   IsString, 
   IsEmail, 
   IsArray, 
-  IsEnum, 
   IsOptional, 
   IsIn, 
   Length, 
   Matches,
-  IsDateString,
-  IsISO8601
+  IsISO8601,
+  IsUUID
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { normalizeISODate } from '../utils/utils';
-
-export enum Subject {
-  MATH = 'MATH',
-  SCIENCE = 'SCIENCE',
-  ENGLISH = 'ENGLISH',
-  COMPUTER_SCIENCE = 'COMPUTER_SCIENCE',
-  PHYSICS = 'PHYSICS',
-  CHEMISTRY = 'CHEMISTRY',
-  BIOLOGY = 'BIOLOGY',
-  MUSIC = 'MUSIC',
-  DANCE = 'DANCE',
-  ART = 'ART',
-  SOCIAL_STUDIES = 'SOCIAL_STUDIES',
-}
-
-export enum Class {
-  NURSERY = 'NURSERY',
-  LKG = 'LKG',
-  UKG = 'UKG',
-  FIRST = 'FIRST',
-  SECOND = 'SECOND',
-  THIRD = 'THIRD',
-  FOURTH = 'FOURTH',
-  FIFTH = 'FIFTH',
-  SIXTH = 'SIXTH',
-  SEVENTH = 'SEVENTH',
-  EIGHTH = 'EIGHTH',
-  NINTH = 'NINTH',
-  TENTH = 'TENTH',
-  ELEVENTH = 'ELEVENTH',
-  TWELFTH = 'TWELFTH',
-}
 
 export class CreateTeacherProfileDto {
   @ApiProperty({
@@ -119,31 +86,29 @@ export class CreateTeacherProfileDto {
   dob: string;
 
   @ApiPropertyOptional({
-    description: 'Subjects that the teacher can teach',
-    enum: Subject,
+    description: 'Array of subject IDs that the teacher can teach',
     isArray: true,
-    example: [Subject.MATH, Subject.PHYSICS],
-    enumName: 'Subject'
+    example: ['123e4567-e89b-12d3-a456-426614174000', '223e4567-e89b-12d3-a456-426614174001'],
+    type: [String]
   })
-  @IsArray({ message: 'Subjects must be an array' })
-  @IsEnum(Subject, { each: true, message: 'Each subject must be a valid subject' })
+  @IsArray({ message: 'Subject IDs must be an array' })
+  @IsUUID('4', { each: true, message: 'Each subject ID must be a valid UUID' })
   @IsOptional()
-  subjects?: Subject[];
+  subjectIds?: string[];
 
   @ApiPropertyOptional({
-    description: 'Classes that the teacher can teach',
-    enum: Class,
+    description: 'Array of class IDs that the teacher can teach',
     isArray: true,
-    example: [Class.NINTH, Class.TENTH],
-    enumName: 'Class'
+    example: ['323e4567-e89b-12d3-a456-426614174002', '423e4567-e89b-12d3-a456-426614174003'],
+    type: [String]
   })
-  @IsArray({ message: 'Classes must be an array' })
-  @IsEnum(Class, { each: true, message: 'Each class must be a valid class' })
+  @IsArray({ message: 'Class IDs must be an array' })
+  @IsUUID('4', { each: true, message: 'Each class ID must be a valid UUID' })
   @IsOptional()
-  classes?: Class[];
+  classIds?: string[];
 
-    @ApiProperty({
-    description: 'User ID of the creator of this student profile',
+  @ApiProperty({
+    description: 'User ID of the creator of this teacher profile',
     example: 'admin-12345',
     type: String
   })

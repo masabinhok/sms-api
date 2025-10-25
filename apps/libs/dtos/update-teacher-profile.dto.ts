@@ -3,15 +3,14 @@ import {
   IsString, 
   IsEmail, 
   IsArray, 
-  IsEnum, 
   IsIn, 
   Length, 
   Matches,
-  IsISO8601
+  IsISO8601,
+  IsUUID
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Subject, Class } from './create-teacher-profile.dto';
 import { normalizeISODate } from '../utils/utils';
 
 export class UpdateTeacherProfileDto {
@@ -87,26 +86,24 @@ export class UpdateTeacherProfileDto {
   dob?: string;
 
   @ApiPropertyOptional({
-    description: 'Subjects that the teacher can teach',
-    enum: Subject,
+    description: 'Array of subject IDs that the teacher can teach',
     isArray: true,
-    example: [Subject.MATH, Subject.PHYSICS],
-    enumName: 'Subject'
+    example: ['123e4567-e89b-12d3-a456-426614174000', '223e4567-e89b-12d3-a456-426614174001'],
+    type: [String]
   })
   @IsOptional()
-  @IsArray({ message: 'Subjects must be an array' })
-  @IsEnum(Subject, { each: true, message: 'Each subject must be a valid subject' })
-  subjects?: Subject[];
+  @IsArray({ message: 'Subject IDs must be an array' })
+  @IsUUID('4', { each: true, message: 'Each subject ID must be a valid UUID' })
+  subjectIds?: string[];
 
   @ApiPropertyOptional({
-    description: 'Classes that the teacher can teach',
-    enum: Class,
+    description: 'Array of class IDs that the teacher can teach',
     isArray: true,
-    example: [Class.NINTH, Class.TENTH],
-    enumName: 'Class'
+    example: ['323e4567-e89b-12d3-a456-426614174002', '423e4567-e89b-12d3-a456-426614174003'],
+    type: [String]
   })
   @IsOptional()
-  @IsArray({ message: 'Classes must be an array' })
-  @IsEnum(Class, { each: true, message: 'Each class must be a valid class' })
-  classes?: Class[];
+  @IsArray({ message: 'Class IDs must be an array' })
+  @IsUUID('4', { each: true, message: 'Each class ID must be a valid UUID' })
+  classIds?: string[];
 }

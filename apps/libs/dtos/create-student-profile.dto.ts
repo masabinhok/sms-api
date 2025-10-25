@@ -7,12 +7,11 @@ import {
   Length, 
   Matches,
   IsISO8601,
-  IsEnum
+  IsUUID
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { normalizeISODate } from '../utils/utils';
-import { Class } from './create-teacher-profile.dto';
 
 export class CreateStudentProfileDto {
   @ApiProperty({
@@ -61,39 +60,14 @@ export class CreateStudentProfileDto {
   @IsIn(['Male', 'Female', 'Other'], { message: 'Gender must be Male, Female, or Other' })
   gender?: string;
 
- @ApiProperty({
-  description: 'Class/Grade of the student',
-  enum: Class,           // Use the enum here
-  example: Class.TENTH,  // Example from enum
-  enumName: 'Class',
-  })
-  @IsEnum(Class, { message: 'Class must be a valid class' })
-  @IsNotEmpty({ message: 'Class is required' })
-  class: Class;
-
   @ApiProperty({
-    description: 'Section of the student within the class',
-    example: 'A',
-    minLength: 1,
-    maxLength: 5,
+    description: 'ID of the class the student belongs to',
+    example: '123e4567-e89b-12d3-a456-426614174000',
     type: String
   })
-  @IsString()
-  @IsNotEmpty({ message: 'Section is required' })
-  @Length(1, 5, { message: 'Section must be between 1 and 5 characters' })
-  @Transform(({ value }) => value?.trim().toUpperCase())
-  section: string;
-
-  @ApiProperty({
-    description: 'Roll number of the student (numeric only)',
-    example: '15',
-    pattern: '^[0-9]+$',
-    type: String
-  })
-  @IsString()
-  @IsNotEmpty({ message: 'Roll number is required' })
-  @Matches(/^[0-9]+$/, { message: 'Roll number must contain only numbers' })
-  rollNumber: string;
+  @IsUUID('4', { message: 'Class ID must be a valid UUID' })
+  @IsNotEmpty({ message: 'Class ID is required' })
+  classId: string;
 
   @ApiProperty({
     description: 'Name of the student\'s guardian/parent',

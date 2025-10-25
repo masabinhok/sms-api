@@ -28,6 +28,22 @@ import { ConfigModule } from '@nestjs/config';
             createPartitioner: Partitioners.LegacyPartitioner
           }
         }
+      },
+      {
+        name: 'ACADEMICS_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'academics-client-from-teacher',
+            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
+          },
+          consumer: {
+            groupId: 'academics-consumer-from-teacher'
+          },
+          producer: {
+            createPartitioner: Partitioners.LegacyPartitioner
+          }
+        }
       }
     ]),
   ],

@@ -20,13 +20,15 @@ model Student {
   dob             DateTime
   email           String
   gender          String?
-  class           String
-  section         String
-  rollNumber      String  
+  classId         String   // Reference to Class in academics service
+  rollNumber      Int      @default(autoincrement()) // Auto-generated roll number
   guardianName    String
   guardianContact String
   address         String?
   createdBy       String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  
+  @@index([classId])
+  @@unique([classId, rollNumber])
 }

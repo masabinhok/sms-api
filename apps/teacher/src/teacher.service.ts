@@ -5,21 +5,57 @@ import { UpdateTeacherProfileDto } from 'apps/libs/dtos/update-teacher-profile.d
 import { QueryTeachersDto } from 'apps/libs/dtos/query-teachers.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { Prisma } from '../generated/prisma';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class TeacherService {
   
   constructor(
     private readonly prisma: PrismaService, 
-    @Inject('AUTH_SERVICE') private authClient: ClientProxy
+    @Inject('AUTH_SERVICE') private authClient: ClientProxy,
+    @Inject('ACADEMICS_SERVICE') private academicsClient: ClientProxy
   ) {}
 
   async createTeacherProfile(createTeacherProfileDto: CreateTeacherProfileDto) {
+    // Validate class IDs if provided
+    if (createTeacherProfileDto.classIds && createTeacherProfileDto.classIds.length > 0) {
+      for (const classId of createTeacherProfileDto.classIds) {
+        try {
+          const classResponse = await firstValueFrom(
+            this.academicsClient.send('class.getById', { id: classId })
+          );
+          
+          if (!classResponse || !classResponse.class) {
+            throw new BadRequestException(`Class with ID ${classId} not found`);
+          }
+        } catch (error) {
+          throw new BadRequestException(`Failed to validate class ${classId}: ${error.message}`);
+        }
+      }
+    }
+
+    // Validate subject IDs if provided
+    if (createTeacherProfileDto.subjectIds && createTeacherProfileDto.subjectIds.length > 0) {
+      for (const subjectId of createTeacherProfileDto.subjectIds) {
+        try {
+          const subjectResponse = await firstValueFrom(
+            this.academicsClient.send('subject.getById', { id: subjectId })
+          );
+          
+          if (!subjectResponse || !subjectResponse.subject) {
+            throw new BadRequestException(`Subject with ID ${subjectId} not found`);
+          }
+        } catch (error) {
+          throw new BadRequestException(`Failed to validate subject ${subjectId}: ${error.message}`);
+        }
+      }
+    }
+
     const teacher = await this.prisma.teacher.create({
       data: createTeacherProfileDto,
     });
 
-    // emit event for auth service to create login credentials for respsective teacher
+    // emit event for auth service to create login credentials for respective teacher
     this.authClient.emit('teacher.created', {
       email: teacher.email,
       fullName: teacher.fullName,
@@ -47,13 +83,13 @@ export class TeacherService {
     }
 
     if (subject) {
-      where.subjects = {
+      where.subjectIds = {
         has: subject
       };
     }
 
     if (className) {
-      where.classes = {
+      where.classIds = {
         has: className
       };
     }
@@ -146,8 +182,8 @@ export class TeacherService {
     // Get all teachers to calculate subject and class statistics
     const teachers = await this.prisma.teacher.findMany({
       select: {
-        subjects: true,
-        classes: true,
+        subjectIds: true,
+        classIds: true,
         gender: true,
       },
     });
@@ -155,26 +191,26 @@ export class TeacherService {
     // Calculate subject statistics
     const subjectCounts: Record<string, number> = {};
     teachers.forEach(teacher => {
-      teacher.subjects?.forEach(subject => {
-        subjectCounts[subject] = (subjectCounts[subject] || 0) + 1;
+      teacher.subjectIds?.forEach(subjectId => {
+        subjectCounts[subjectId] = (subjectCounts[subjectId] || 0) + 1;
       });
     });
 
-    const bySubject = Object.entries(subjectCounts).map(([subject, count]) => ({
-      subject,
+    const bySubject = Object.entries(subjectCounts).map(([subjectId, count]) => ({
+      subjectId,
       _count: count,
     }));
 
     // Calculate class statistics
     const classCounts: Record<string, number> = {};
     teachers.forEach(teacher => {
-      teacher.classes?.forEach(className => {
-        classCounts[className] = (classCounts[className] || 0) + 1;
+      teacher.classIds?.forEach(classId => {
+        classCounts[classId] = (classCounts[classId] || 0) + 1;
       });
     });
 
-    const byClass = Object.entries(classCounts).map(([className, count]) => ({
-      class: className,
+    const byClass = Object.entries(classCounts).map(([classId, count]) => ({
+      classId,
       _count: count,
     }));
 
