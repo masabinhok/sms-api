@@ -7,7 +7,8 @@ import {
   Length, 
   Matches,
   IsISO8601,
-  IsUUID
+  IsUUID,
+  ValidateIf
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -106,12 +107,10 @@ export class CreateStudentProfileDto {
   @Transform(({ value }) => value?.trim())
   address?: string;
 
-  @ApiProperty({
-    description: 'User ID of the creator of this student profile',
-    example: 'admin-12345',
-    type: String
-  })
+  // This field is automatically populated by the system with the logged-in user's ID
+  // Do not send this from the frontend
+  @ValidateIf((o) => o.createdBy !== undefined && o.createdBy !== null)
   @IsString()
-  @IsNotEmpty({ message: 'CreatedBy is required' })
-  createdBy: string;
+  @IsOptional()
+  createdBy?: string;
 }

@@ -6,6 +6,7 @@ import { QueryTeachersDto } from 'apps/libs/dtos/query-teachers.dto';
 import { AuthGuard } from 'apps/libs/guards/auth.guard';
 import { RolesGuard } from 'apps/libs/guards/roles.guard';
 import { Roles } from 'apps/libs/decorators/roles.decorator';
+import { GetUser } from 'apps/libs/decorators/get-user.decorator';
 import { 
   ApiTags, 
   ApiOperation, 
@@ -56,8 +57,29 @@ export class TeacherController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @Post('create-profile')
-  async createTeacherProfile(@Body() data: CreateTeacherProfileDto) {
-    return this.teacherService.createTeacherProfile(data);
+  async createTeacherProfile(
+    @Body() data: CreateTeacherProfileDto,
+    @GetUser('sub') userId: string
+  ) {
+    try {
+      console.log('=== CREATE TEACHER DEBUG ===');
+      console.log('User ID:', userId);
+      console.log('Data received:', JSON.stringify(data, null, 2));
+      
+      // Add the logged-in user ID as createdBy
+      const dataWithCreator = { ...data, createdBy: userId };
+      console.log('Data with creator:', JSON.stringify(dataWithCreator, null, 2));
+      
+      const result = await this.teacherService.createTeacherProfile(dataWithCreator);
+      console.log('Result:', result);
+      return result;
+    } catch (error) {
+      console.error('=== ERROR IN CREATE TEACHER ===');
+      console.error('Error:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      throw error;
+    }
   }
 
   @ApiOperation({

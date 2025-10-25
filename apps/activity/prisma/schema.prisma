@@ -42,20 +42,16 @@ enum EntityType {
 model Activity {
   id String @id @default(uuid())
   
-  // User who performed the action
   userId String
   userRole Role
   username String?
   
-  // Action details
   action ActionType
   description String
   
-  // Entity details
   entityType EntityType
   entityId String?
   
-  // Additional context
   metadata Json?
   ipAddress String?
   

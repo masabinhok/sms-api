@@ -6,6 +6,7 @@ import { QueryStudentsDto } from 'apps/libs/dtos/query-students.dto';
 import { AuthGuard } from 'apps/libs/guards/auth.guard';
 import { RolesGuard } from 'apps/libs/guards/roles.guard';
 import { Roles } from 'apps/libs/decorators/roles.decorator';
+import { GetUser } from 'apps/libs/decorators/get-user.decorator';
 import { 
   ApiTags, 
   ApiOperation, 
@@ -56,8 +57,13 @@ export class StudentController {
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
   @Post('/create-profile')
-  async createStudentProfile(@Body() createStudentProfileDto: CreateStudentProfileDto){
-    return this.studentService.createStudentProfile(createStudentProfileDto);
+  async createStudentProfile(
+    @Body() createStudentProfileDto: CreateStudentProfileDto,
+    @GetUser('sub') userId: string
+  ) {
+    // Add the logged-in user ID as createdBy
+    const dataWithCreator = { ...createStudentProfileDto, createdBy: userId };
+    return this.studentService.createStudentProfile(dataWithCreator);
   }
 
   @ApiOperation({
