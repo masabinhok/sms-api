@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: sms-api-gateway
+    # Use the Docker deployment runtime
+    runtime: docker
+    plan: starter
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    # Build on Render: install deps & build the gateway project
+    buildCommand: npm ci && npm run build
+    # Start command executed inside the built image/container
+    startCommand: ./start.sh
+    # Optional: adjust health check path if your app exposes one
+    healthCheckPath: "/"
+    # You should configure sensitive environment variables (DB URLs, JWT secrets, SMTP creds) in Render's dashboard
+    envVars:
+      - key: NODE_ENV
+        value: production
