@@ -289,4 +289,10 @@ export class AuthController {
     return this.authService.deleteAdmin(id, userId, username, role);
   }
 
+  @Post('/forgot-password')
+  async handleForgotPassword(@Body() body: { username: string }) {
+    // Implementation for forgot password to email associated with username
+    return this.authService.handleForgotPassword(body.username);
+  }
+
 }

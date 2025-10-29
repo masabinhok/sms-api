@@ -13,5 +13,10 @@ export class EmailController {
   async handleSendCredentials(data: handleSendCredentialsDto){
     return this.emailService.handleSendCredentials(data);
   }
+
+  @EventPattern('tempPass.created')
+  async handleForgotPassword(data: { email: string; tempPassword: string }){
+    return this.emailService.handleForgotPassword(data);
+  }
   
 }

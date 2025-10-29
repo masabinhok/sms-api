@@ -583,4 +583,35 @@ export class AuthService {
     }
   }
 
+  async handleForgotPassword(username: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        username
+      }
+    });
+    if (!user) {
+      throw new RpcException({
+        status: 404,
+        message: 'User not found'
+      });
+    }
+    // Generate a temporary password
+    const tempPassword = this.generatePassword();
+    const hashedTempPassword = await this.generateHash(tempPassword);
+    // Update user's password to the temporary password
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: hashedTempPassword }
+    });
+    // Send email with temporary password
+    this.emailClient.emit('tempPass.created', {
+      email: user.profileEmail,
+      username: user.username,
+      tempPassword
+    });
+    return {
+      success: true,
+      message: 'Temporary password has been sent to your email'
+    };
+  }
 }

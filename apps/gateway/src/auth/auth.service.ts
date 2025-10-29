@@ -23,6 +23,7 @@ export class AuthService implements OnModuleInit {
       this.authClient.subscribeToResponseOf('admin.update');
       this.authClient.subscribeToResponseOf('admin.get');
       this.authClient.subscribeToResponseOf('user.me');
+      this.authClient.subscribeToResponseOf('user.forgot-password');
       await this.authClient.connect();
       
       // Wait a bit for subscriptions to be fully established
@@ -33,6 +34,8 @@ export class AuthService implements OnModuleInit {
       console.error('Failed to initialize auth service client:', error);
     }
   }
+
+
 
   private convertRpcExceptionToHttp(error: any): Error {
     // Check if it's an RPC exception with status and message
@@ -87,6 +90,25 @@ export class AuthService implements OnModuleInit {
       );
     } catch (error) {
       console.error('Login failed:', error.message);
+      throw error; // Re-throw the converted HTTP exception
+    }
+  }
+
+  async handleForgotPassword(username: string) {
+    await this.ensureClientReady();
+    try {
+      return await firstValueFrom(
+        this.authClient.send('user.forgot-password', { username }).pipe(
+          timeout(5000),
+          catchError(err => {
+            console.error('Auth service forgot-pass error:', err);
+            const httpError = this.convertRpcExceptionToHttp(err);
+            return throwError(() => httpError);
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Forgot password failed:', error.message);
       throw error; // Re-throw the converted HTTP exception
     }
   }

@@ -17,6 +17,11 @@ export class AuthController {
     return this.authService.handleStudentCreated(payload);
   }
 
+  @MessagePattern('user.forgot-password')
+  async handleForgotPassword(@Payload() payload: { username: string }){
+    return this.authService.handleForgotPassword(payload.username);
+  }
+
   @EventPattern('teacher.created')
   async handleTeacherCreated(@Payload() payload: HandleTeacherCreatedDto ){
     return this.authService.handleTeacherCreated(payload);
