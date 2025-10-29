@@ -30,10 +30,16 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  // Enable CORS for frontend
-  app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4000',
+    app.enableCors({
+    origin: [
+      'https://sms-nest.vercel.app', 
+      'http://localhost:3000',        
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
 
   await app.listen(process.env.PORT ?? 3000);
