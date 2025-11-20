@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
 import { ClientKafkaProxy } from '@nestjs/microservices';
@@ -16,6 +16,7 @@ import {
 
 @Injectable()
 export class AuthService implements OnModuleInit {
+  private readonly logger = new Logger(AuthService.name);
   private isClientReady = false;
   private circuitBreaker: CircuitBreaker;
   private requestTimeout: number;
@@ -54,9 +55,9 @@ export class AuthService implements OnModuleInit {
       // Wait a bit for subscriptions to be fully established
       await new Promise(resolve => setTimeout(resolve, 1000));
       this.isClientReady = true;
-      console.log('Auth service client is ready');
+      this.logger.log('Auth service client is ready');
     } catch (error) {
-      console.error('Failed to initialize auth service client:', error);
+      this.logger.error('Failed to initialize auth service client', error.stack);
     }
   }
 

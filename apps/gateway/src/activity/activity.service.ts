@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ClientKafkaProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
@@ -15,6 +15,7 @@ import {
 
 @Injectable()
 export class ActivityService implements OnModuleInit {
+  private readonly logger = new Logger(ActivityService.name);
   private isClientReady = false;
   private circuitBreaker: CircuitBreaker;
   private requestTimeout: number;
@@ -45,9 +46,9 @@ export class ActivityService implements OnModuleInit {
       // Wait for subscriptions to be fully established
       await new Promise((resolve) => setTimeout(resolve, 1000));
       this.isClientReady = true;
-      console.log('Activity service client is ready');
+      this.logger.log('Activity service client is ready');
     } catch (error) {
-      console.error('Failed to initialize activity service client:', error);
+      this.logger.error('Failed to initialize activity service client', error.stack);
     }
   }
 

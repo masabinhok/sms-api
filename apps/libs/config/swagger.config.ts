@@ -105,7 +105,6 @@ export const swaggerUiOptions = {
     }
   `,
   customJs: `
-    console.log('SMS API Documentation loaded');
     // Add any custom JavaScript here
   `,
 };

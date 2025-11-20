@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { CreateTeacherProfileDto } from 'apps/libs/dtos/create-teacher-profile.dto';
 import { UpdateTeacherProfileDto } from 'apps/libs/dtos/update-teacher-profile.dto';
@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class TeacherService implements OnModuleInit {
+  private readonly logger = new Logger(TeacherService.name);
   
   constructor(
     private readonly prisma: PrismaService, 
@@ -22,7 +23,7 @@ export class TeacherService implements OnModuleInit {
     this.academicsClient.subscribeToResponseOf('class.getById');
     this.academicsClient.subscribeToResponseOf('subject.getById');
     await this.academicsClient.connect();
-    console.log('Teacher service connected to academics service');
+    this.logger.log('Teacher service connected to academics service');
   }
 
   async createTeacherProfile(createTeacherProfileDto: CreateTeacherProfileDto) {

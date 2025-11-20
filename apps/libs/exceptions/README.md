@@ -1,4 +1,6 @@
-# Exception Handling - Quick Reference
+# Exception Handling & Logging - Quick Reference
+
+> **📖 Related Documentation**: See [LOGGING.md](./LOGGING.md) for detailed structured logging implementation
 
 ## Import
 
@@ -13,6 +15,9 @@ import {
   handlePrismaError,
   handleServiceError,
 } from 'apps/libs/exceptions';
+
+// For logging
+import { Logger } from '@nestjs/common';
 ```
 
 ## Common Patterns

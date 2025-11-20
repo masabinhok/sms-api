@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ClientKafkaProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { CreateTeacherProfileDto } from 'apps/libs/dtos/create-teacher-profile.dto';
@@ -17,6 +17,7 @@ import {
 
 @Injectable()
 export class TeacherService implements OnModuleInit {
+  private readonly logger = new Logger(TeacherService.name);
   private isClientReady = false;
   private circuitBreaker: CircuitBreaker;
   private requestTimeout: number;
@@ -50,9 +51,9 @@ export class TeacherService implements OnModuleInit {
       // Wait a bit for subscriptions to be fully established
       await new Promise(resolve => setTimeout(resolve, 1000));
       this.isClientReady = true;
-      console.log('Teacher service client is ready');
+      this.logger.log('Teacher service client is ready');
     } catch (error) {
-      console.error('Failed to initialize teacher service client:', error);
+      this.logger.error('Failed to initialize teacher service client', error.stack);
     }
   }
 

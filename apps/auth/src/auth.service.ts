@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HandleStudentCreatedDto } from 'apps/libs/dtos/handle-student-created.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from './prisma.service';
@@ -21,6 +21,8 @@ import {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(private prisma: PrismaService, 
     @Inject('EMAIL_SERVICE') private emailClient: ClientProxy,
     @Inject('ACTIVITY_SERVICE') private activityClient: ClientProxy,
@@ -106,7 +108,7 @@ export class AuthService {
       };
 
     } catch (error) {
-      console.error('Error creating admin profile:', error);
+      this.logger.error('Error creating admin profile', error.stack, { error: error.message });
       
       if (error.code === 'P2002') {
         throw new ConflictException('Admin username already exists');
@@ -195,7 +197,7 @@ export class AuthService {
       this.emailClient.emit('user.created', { email, username, password, fullName });
 
     } catch (error) {
-      console.error('Error creating user:', error);
+      this.logger.error('Error creating user credentials for student', error.stack, { profileId: payload.studentId });
       
       // Handle specific Prisma errors
       if (error.code === 'P2002') {
@@ -233,7 +235,7 @@ export class AuthService {
       // TODO: Email the username and password to the teacher's email address
            this.emailClient.emit('user.created', { email, username, password, fullName });
     } catch (error) {
-      console.error('Error creating user:', error);
+      this.logger.error('Error creating user credentials for teacher', error.stack, { profileId: payload.teacherId });
       
       // Handle specific Prisma errors
       if (error.code === 'P2002') {

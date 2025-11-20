@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ClientKafkaProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { UpdateSchoolDto } from 'apps/libs/dtos/update-school.dto';
@@ -20,6 +20,7 @@ import {
 
 @Injectable()
 export class AcademicsService implements OnModuleInit {
+    private readonly logger = new Logger(AcademicsService.name);
     private isClientReady = false;
     private circuitBreaker: CircuitBreaker;
     private requestTimeout: number;
@@ -69,9 +70,9 @@ export class AcademicsService implements OnModuleInit {
 
             await new Promise(resolve => setTimeout(resolve, 1000))
             this.isClientReady = true;
-            console.log('Academics service client is ready');
+            this.logger.log('Academics service client is ready');
         } catch (error) {
-            console.error('Error initializing Academics service client', error);
+            this.logger.error('Error initializing Academics service client', error.stack);
         }
     }
 
