@@ -1,15 +1,40 @@
-import { Inject, Injectable, UnauthorizedException, BadRequestException, ForbiddenException, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
-import {  ClientKafkaProxy,  } from '@nestjs/microservices';
-import { firstValueFrom, timeout, catchError } from 'rxjs';
-import { throwError } from 'rxjs';
+import { ClientKafkaProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 import { PasswordChangeDto } from 'apps/libs/dtos/password-change.dto';
+import { withKafkaErrorHandling, CircuitBreaker } from 'apps/libs/utils/kafka-resilience.util';
+import { convertRpcExceptionToHttp } from 'apps/libs/utils/kafka-error.util';
+import { 
+  getKafkaRequestTimeout, 
+  getKafkaRetryAttempts, 
+  getKafkaRetryDelay,
+  getKafkaCircuitBreakerThreshold,
+  getKafkaCircuitBreakerTimeout
+} from 'apps/libs/config/kafka.config';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
   private isClientReady = false;
+  private circuitBreaker: CircuitBreaker;
+  private requestTimeout: number;
+  private retryAttempts: number;
+  private retryDelay: number;
 
-  constructor(@Inject('AUTH_SERVICE') private authClient: ClientKafkaProxy) {}
+  constructor(
+    @Inject('AUTH_SERVICE') private authClient: ClientKafkaProxy,
+    private configService: ConfigService
+  ) {
+    this.requestTimeout = getKafkaRequestTimeout(configService);
+    this.retryAttempts = getKafkaRetryAttempts(configService);
+    this.retryDelay = getKafkaRetryDelay(configService);
+    this.circuitBreaker = new CircuitBreaker(
+      'AuthService',
+      getKafkaCircuitBreakerThreshold(configService),
+      getKafkaCircuitBreakerTimeout(configService)
+    );
+  }
 
   async onModuleInit(){
     try {
@@ -35,260 +60,86 @@ export class AuthService implements OnModuleInit {
     }
   }
 
-
-
-  private convertRpcExceptionToHttp(error: any): Error {
-    // Check if it's an RPC exception with status and message
-    if (error && typeof error === 'object' && error.status && error.message) {
-      switch (error.status) {
-        case 400:
-          return new BadRequestException(error.message);
-        case 401:
-          return new UnauthorizedException(error.message);
-        case 403:
-          return new ForbiddenException(error.message);
-        default:
-          return new Error(error.message || 'Service error');
-      }
+  private async executeWithResilience<T>(pattern: string, data: any, operation: string): Promise<T> {
+    if (!this.circuitBreaker.canExecute()) {
+      throw convertRpcExceptionToHttp({
+        status: 503,
+        message: 'Auth service circuit breaker is open'
+      });
     }
-    
-    // If it's not a structured RPC exception, return a generic error
-    return new Error('Authentication service unavailable');
-  }
 
-  private async ensureClientReady(): Promise<void> {
     if (!this.isClientReady) {
-      // Wait for client to be ready, with a maximum wait time
-      const maxWaitTime = 10000; // 10 seconds
-      const checkInterval = 100; // 100ms
-      let waitedTime = 0;
-      
-      while (!this.isClientReady && waitedTime < maxWaitTime) {
-        await new Promise(resolve => setTimeout(resolve, checkInterval));
-        waitedTime += checkInterval;
-      }
-      
-      if (!this.isClientReady) {
-        throw new Error('Auth service client not ready');
-      }
+      this.circuitBreaker.recordFailure();
+      throw convertRpcExceptionToHttp({
+        status: 503,
+        message: 'Auth service not ready'
+      });
+    }
+
+    try {
+      const result = await firstValueFrom(
+        withKafkaErrorHandling(
+          this.authClient.send(pattern, data),
+          {
+            timeoutMs: this.requestTimeout,
+            retries: this.retryAttempts,
+            retryDelay: this.retryDelay,
+            serviceName: 'AuthService',
+            operation
+          }
+        )
+      );
+      this.circuitBreaker.recordSuccess();
+      return result;
+    } catch (error) {
+      this.circuitBreaker.recordFailure();
+      throw convertRpcExceptionToHttp(error);
     }
   }
 
   async handleUserLogin(loginDto: LoginDto): Promise<{accessToken: string, refreshToken: string, passwordChangeCount: number}> {
-    await this.ensureClientReady();
-    
-    try {
-      return await firstValueFrom(
-        this.authClient.send('user.login', loginDto).pipe(
-          timeout(5000), // 5 second timeout
-          catchError(err => {
-            console.error('Auth service login error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('Login failed:', error.message);
-      throw error; // Re-throw the converted HTTP exception
-    }
+    return this.executeWithResilience('user.login', loginDto, 'handleUserLogin');
   }
 
   async handleForgotPassword(username: string) {
-    await this.ensureClientReady();
-    try {
-      return await firstValueFrom(
-        this.authClient.send('user.forgot-password', { username }).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service forgot-pass error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('Forgot password failed:', error.message);
-      throw error; // Re-throw the converted HTTP exception
-    }
+    return this.executeWithResilience('user.forgot-password', { username }, 'handleForgotPassword');
   }
 
   async handleUserLogout(userId: string): Promise<{success: boolean, message: string}> {
-    await this.ensureClientReady();
-    
-    try {
-      return await firstValueFrom(
-        this.authClient.send('user.logout', { userId }).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service logout error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('Logout failed:', error.message);
-      throw error; // Re-throw the converted HTTP exception
-    }
+    return this.executeWithResilience('user.logout', { userId }, 'handleUserLogout');
   }
 
   async handleUserRefresh(userId: string, token: string): Promise<{accessToken: string, refreshToken: string}> {
-    await this.ensureClientReady();
-    
-    try {
-      return await firstValueFrom(
-        this.authClient.send('user.refresh', {userId, token}).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service refresh error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('Token refresh failed:', error.message);
-      throw error; // Re-throw the converted HTTP exception
-    }
+    return this.executeWithResilience('user.refresh', { userId, token }, 'handleUserRefresh');
   }
 
   async createAdminProfile(data: {name: string, email: string}, actorUserId?: string, actorUsername?: string, actorRole?: string) {
-    await this.ensureClientReady();
-    
-    try {
-      return await firstValueFrom(
-        this.authClient.send('admin.createProfile', { ...data, actorUserId, actorUsername, actorRole }).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service admin creation error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('Admin creation failed:', error.message);
-      throw error; // Re-throw the converted HTTP exception
-    }
+    return this.executeWithResilience('admin.createProfile', { ...data, actorUserId, actorUsername, actorRole }, 'createAdminProfile');
   }
 
   // Admin management proxy methods
   async listAdmins(params: { page?: number; limit?: number; search?: string }) {
-    await this.ensureClientReady();
-    try {
-      return await firstValueFrom(
-        this.authClient.send('admin.list', params).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service admin.list error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('admin.list failed:', error.message);
-      throw error;
-    }
+    return this.executeWithResilience('admin.list', params, 'listAdmins');
   }
 
   async getAdmin(id: string) {
-    await this.ensureClientReady();
-    try {
-      return await firstValueFrom(
-        this.authClient.send('admin.get', { id }).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service admin.get error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('admin.get failed:', error.message);
-      throw error;
-    }
+    return this.executeWithResilience('admin.get', { id }, 'getAdmin');
   }
 
   async updateAdmin(id: string, data: any, actorUserId?: string, actorUsername?: string, actorRole?: string) {
-    await this.ensureClientReady();
-    try {
-      return await firstValueFrom(
-        this.authClient.send('admin.update', { id, data, actorUserId, actorUsername, actorRole }).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service admin.update error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('admin.update failed:', error.message);
-      throw error;
-    }
+    return this.executeWithResilience('admin.update', { id, data, actorUserId, actorUsername, actorRole }, 'updateAdmin');
   }
 
   async deleteAdmin(id: string, actorUserId?: string, actorUsername?: string, actorRole?: string) {
-    await this.ensureClientReady();
-    try {
-      return await firstValueFrom(
-        this.authClient.send('admin.delete', { id, actorUserId, actorUsername, actorRole }).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service admin.delete error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('admin.delete failed:', error.message);
-      throw error;
-    }
+    return this.executeWithResilience('admin.delete', { id, actorUserId, actorUsername, actorRole }, 'deleteAdmin');
   }
 
   async handlePasswordChange(data: PasswordChangeDto, userId: string){
-    await this.ensureClientReady();
-    
-    try {
-      return await firstValueFrom(
-        this.authClient.send('user.changePassword', {...data, userId}).pipe(
-          timeout(5000),
-          catchError(err => {
-            console.error('Auth service password change error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError);
-          })
-        )
-      );
-    } catch (error) {
-      console.error('Password change failed:', error.message);
-      throw error; // Re-throw the converted HTTP exception
-    }
+    return this.executeWithResilience('user.changePassword', { ...data, userId }, 'handlePasswordChange');
   }
 
   async getMe(userId: string){
-    await this.ensureClientReady();
-
-    try {
-      return await firstValueFrom(
-        this.authClient.send('user.me', {userId}).pipe(
-          timeout(5000), 
-          catchError(err => {
-            console.error('Auth service get profile error:', err);
-            const httpError = this.convertRpcExceptionToHttp(err);
-            return throwError(() => httpError) ;
-          })
-        )
-      )
-    }
-      catch(error){
-        console.error('Fetching user profile failed',error);
-        throw error;  //rethrow the converted http exception.
-      }
+    return this.executeWithResilience('user.me', { userId }, 'getMe');
   }
 
 }
