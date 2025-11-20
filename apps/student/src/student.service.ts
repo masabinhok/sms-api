@@ -1,5 +1,6 @@
 import { Inject, Injectable, NotFoundException, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { TransactionHelper } from '../../libs/utils/transaction.util';
 import { CreateStudentProfileDto } from '../../libs/dtos/create-student-profile.dto';
 import { UpdateStudentProfileDto } from '../../libs/dtos/update-student-profile.dto';
 import { QueryStudentsDto } from '../../libs/dtos/query-students.dto';
@@ -193,12 +194,14 @@ export class StudentService implements OnModuleInit {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
-    // Delete student
-    await this.prisma.student.delete({
-      where: { id },
+    // Delete student within transaction
+    await TransactionHelper.execute(this.prisma, async (tx) => {
+      await tx.student.delete({
+        where: { id },
+      });
     });
 
-    // Emit event to delete user credentials
+    // Emit events after successful transaction
     this.authClient.emit('student.deleted', {
       studentId: id,
       email: existingStudent.email,

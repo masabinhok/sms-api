@@ -3,6 +3,7 @@ import { HandleStudentCreatedDto } from 'apps/libs/dtos/handle-student-created.d
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from './prisma.service';
 import { PasswordGenerator } from 'apps/libs/utils/password-generator.util';
+import { TransactionHelper } from 'apps/libs/utils/transaction.util';
 import { HandleTeacherCreatedDto } from 'apps/libs/dtos/handle-teacher-created.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
@@ -64,19 +65,20 @@ export class AuthService {
       // Hash the password
       const hashedPassword = await this.generateHash(adminData.password);
 
-      // Create admin user
-       const newAdmin = await this.prisma.user.create({
-        data: {
-          username: adminData.username,
-          passwordHash: hashedPassword,
-          role: 'ADMIN',
-          profileId: adminData.profileId,
-          profileEmail: adminData.email,
-        }
+      // Create admin user within transaction
+      const newAdmin = await TransactionHelper.execute(this.prisma, async (tx) => {
+        return await tx.user.create({
+          data: {
+            username: adminData.username,
+            passwordHash: hashedPassword,
+            role: 'ADMIN',
+            profileId: adminData.profileId,
+            profileEmail: adminData.email,
+          }
+        });
       });
 
-   
-
+      // Emit events after successful transaction
       this.emailClient.emit('user.created', { 
         email: adminData.email, 
         username: adminData.username, 
