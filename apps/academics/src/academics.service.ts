@@ -6,6 +6,7 @@ import { CreateSubjectDto } from 'apps/libs/dtos/create-subject.dto';
 import { UpdateSubjectDto } from 'apps/libs/dtos/update-subject.dto';
 import { AssignSubjectsToClassDto } from 'apps/libs/dtos/assign-subjects-to-class.dto';
 import { PrismaService } from './prisma.service';
+import { TransactionHelper } from 'apps/libs/utils/transaction.util';
 
 @Injectable()
 export class AcademicsService {
@@ -164,7 +165,10 @@ export class AcademicsService {
       throw new NotFoundException(`Class with ID ${id} not found`);
     }
 
-    await this.prisma.class.delete({ where: { id } });
+    // Delete class and cascading relationships within transaction
+    await TransactionHelper.execute(this.prisma, async (tx) => {
+      await tx.class.delete({ where: { id } });
+    });
 
     return {
       message: 'Class deleted successfully',
@@ -294,7 +298,10 @@ export class AcademicsService {
       throw new NotFoundException(`Subject with ID ${id} not found`);
     }
 
-    await this.prisma.subject.delete({ where: { id } });
+    // Delete subject and relationships within transaction
+    await TransactionHelper.execute(this.prisma, async (tx) => {
+      await tx.subject.delete({ where: { id } });
+    });
 
     return {
       message: 'Subject deleted successfully',
@@ -340,22 +347,24 @@ export class AcademicsService {
       );
     }
 
-    // Create new assignments
-    const assignments = await Promise.all(
-      subjects.map(sub =>
-        this.prisma.classSubject.create({
-          data: {
-            classId,
-            subjectId: sub.subjectId,
-            isCompulsory: sub.isCompulsory ?? true,
-            weeklyPeriods: sub.weeklyPeriods ?? 5,
-          },
-          include: {
-            subject: true,
-          },
-        })
-      )
-    );
+    // Create new assignments within transaction (all-or-nothing)
+    const assignments = await TransactionHelper.execute(this.prisma, async (tx) => {
+      return await Promise.all(
+        subjects.map(sub =>
+          tx.classSubject.create({
+            data: {
+              classId,
+              subjectId: sub.subjectId,
+              isCompulsory: sub.isCompulsory ?? true,
+              weeklyPeriods: sub.weeklyPeriods ?? 5,
+            },
+            include: {
+              subject: true,
+            },
+          })
+        )
+      );
+    });
 
     return {
       message: `Successfully assigned ${assignments.length} subject(s) to class`,

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 import { CreateActivityDto } from 'apps/libs/dtos/create-activity.dto';
 import { QueryActivityDto } from 'apps/libs/dtos/query-activity.dto';
@@ -6,6 +6,8 @@ import { Prisma } from '../generated/prisma';
 
 @Injectable()
 export class ActivityService {
+  private readonly logger = new Logger(ActivityService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async createActivity(createActivityDto: CreateActivityDto) {
@@ -15,7 +17,7 @@ export class ActivityService {
       });
       return { success: true, data: activity };
     } catch (error) {
-      console.error('Failed to create activity log:', error);
+      this.logger.error('Failed to create activity log', error.stack, { userId: createActivityDto.userId });
       return { success: false, error: error.message };
     }
   }

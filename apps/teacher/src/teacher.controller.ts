@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { TeacherService } from './teacher.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateTeacherProfileDto } from 'apps/libs/dtos/create-teacher-profile.dto';
@@ -8,6 +8,15 @@ import { QueryTeachersDto } from 'apps/libs/dtos/query-teachers.dto';
 @Controller()
 export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
+
+  @Get('health')
+  health() {
+    return { 
+      status: 'ok', 
+      service: 'teacher',
+      timestamp: new Date().toISOString() 
+    };
+  }
 
   @MessagePattern('teacher.createProfile')
   async createTeacherProfile(@Payload() data: CreateTeacherProfileDto){

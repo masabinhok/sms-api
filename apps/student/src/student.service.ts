@@ -1,5 +1,6 @@
-import { Inject, Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
+import { TransactionHelper } from '../../libs/utils/transaction.util';
 import { CreateStudentProfileDto } from '../../libs/dtos/create-student-profile.dto';
 import { UpdateStudentProfileDto } from '../../libs/dtos/update-student-profile.dto';
 import { QueryStudentsDto } from '../../libs/dtos/query-students.dto';
@@ -9,6 +10,8 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class StudentService implements OnModuleInit {
+  private readonly logger = new Logger(StudentService.name);
+
   constructor(
     @Inject('AUTH_SERVICE') private authClient: ClientProxy,
     @Inject('ACADEMICS_SERVICE') private academicsClient: ClientKafka,
@@ -20,7 +23,7 @@ export class StudentService implements OnModuleInit {
     // Subscribe to reply topics from academics service
     this.academicsClient.subscribeToResponseOf('class.getById');
     await this.academicsClient.connect();
-    console.log('Student service connected to academics service');
+    this.logger.log('Student service connected to academics service');
   }
 
   async createStudentProfile(createStudentProfileDto: CreateStudentProfileDto) {
@@ -191,12 +194,14 @@ export class StudentService implements OnModuleInit {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
-    // Delete student
-    await this.prisma.student.delete({
-      where: { id },
+    // Delete student within transaction
+    await TransactionHelper.execute(this.prisma, async (tx) => {
+      await tx.student.delete({
+        where: { id },
+      });
     });
 
-    // Emit event to delete user credentials
+    // Emit events after successful transaction
     this.authClient.emit('student.deleted', {
       studentId: id,
       email: existingStudent.email,

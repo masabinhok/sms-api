@@ -8,6 +8,7 @@ import {
   swaggerDocumentOptions, 
   swaggerUiOptions 
 } from 'apps/libs/config/swagger.config';
+import { HttpExceptionFilter, AllHttpExceptionsFilter } from 'apps/libs/filters';
 
 async function bootstrap() {
   const app = await NestFactory.create(GatewayModule);
@@ -15,6 +16,9 @@ async function bootstrap() {
   // Swagger Documentation Setup
   const document = SwaggerModule.createDocument(app, gatewaySwaggerConfig, swaggerDocumentOptions);
   SwaggerModule.setup('api/docs', app, document, swaggerUiOptions);
+
+  // Apply global exception filters for consistent error handling
+  app.useGlobalFilters(new HttpExceptionFilter(), new AllHttpExceptionsFilter());
 
   // Enable global validation
   app.useGlobalPipes(

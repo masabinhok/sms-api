@@ -1,6 +1,10 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 import { handleSendCredentialsDto } from 'apps/libs/dtos/handle-send-credentials.dto';
+import { 
+  InternalServerErrorException, 
+  BadRequestException 
+} from 'apps/libs/exceptions';
 
 @Injectable()
 export class EmailService {
@@ -26,7 +30,10 @@ export class EmailService {
             return { success: true, messageId: result.messageId };
         } catch (error) {
             this.logger.error(`Failed to send email to ${options.to}: ${error.message}`);
-            throw new Error(`Email sending failed: ${error.message}`);
+            throw new InternalServerErrorException('Email sending failed', {
+                recipient: options.to,
+                reason: error.message,
+            });
         }
     }
 
@@ -60,7 +67,7 @@ export class EmailService {
             html = this.generateForgotPasswordHtmlWithTempPassword(tempPassword);
             text = this.generateForgotPasswordTextWithTempPassword(tempPassword);
         } else {
-            throw new Error('Must provide either resetLink or tempPassword');
+            throw new BadRequestException('Must provide either resetLink or tempPassword');
         }
         return this.sendEmail({
             to: email,

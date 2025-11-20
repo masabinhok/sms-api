@@ -1,6 +1,7 @@
 import { PrismaClient } from '../generated/prisma';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { SeedLogger } from '../../libs/utils/seed-logger.util';
 
 // Load environment variables from .env file
 dotenv.config({ path: path.join(__dirname, '../../../.env') });
@@ -8,7 +9,7 @@ dotenv.config({ path: path.join(__dirname, '../../../.env') });
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  SeedLogger.log('🌱 Seeding database...');
 
   // Check if school already exists
   const existingSchool = await prisma.school.findFirst();
@@ -45,11 +46,11 @@ async function main() {
       },
     });
 
-    console.log('✅ Default school created successfully!');
-    console.log(`   School ID: ${school.id}`);
-    console.log(`   School Name: ${school.name}`);
+    SeedLogger.success('Default school created successfully!');
+    SeedLogger.detail(`School ID: ${school.id}`);
+    SeedLogger.detail(`School Name: ${school.name}`);
   } else {
-    console.log('✅ School already exists, skipping school creation');
+    SeedLogger.success('School already exists, skipping school creation');
   }
 
   // Seed Classes
@@ -59,7 +60,7 @@ async function main() {
   const existingClasses = await prisma.class.count();
   
   if (existingClasses === 0) {
-    console.log('\n� Creating sample classes...');
+    SeedLogger.section('📚 Creating sample classes...');
     
     const classesData = [
       // Pre-primary
@@ -93,16 +94,16 @@ async function main() {
       await prisma.class.create({ data: classData });
     }
 
-    console.log(`✅ Created ${classesData.length} sample classes`);
+    SeedLogger.success(`Created ${classesData.length} sample classes`);
   } else {
-    console.log(`✅ Classes already exist (${existingClasses} found), skipping class creation`);
+    SeedLogger.success(`Classes already exist (${existingClasses} found), skipping class creation`);
   }
 
   // Seed Subjects
   const existingSubjects = await prisma.subject.count();
   
   if (existingSubjects === 0) {
-    console.log('\n📖 Creating sample subjects...');
+    SeedLogger.section('📖 Creating sample subjects...');
     
     const subjectsData = [
       // Core subjects
@@ -133,24 +134,24 @@ async function main() {
       await prisma.subject.create({ data: subjectData });
     }
 
-    console.log(`✅ Created ${subjectsData.length} sample subjects`);
+    SeedLogger.success(`Created ${subjectsData.length} sample subjects`);
   } else {
-    console.log(`✅ Subjects already exist (${existingSubjects} found), skipping subject creation`);
+    SeedLogger.success(`Subjects already exist (${existingSubjects} found), skipping subject creation`);
   }
 
-  console.log('\n✅ Database seeding completed successfully!');
-  console.log('');
-  console.log('📝 Next steps:');
-  console.log('   1. Login to your admin dashboard');
-  console.log('   2. Go to Settings > School Information to update school details');
-  console.log('   3. Go to Academics > Classes to manage classes');
-  console.log('   4. Go to Academics > Subjects to manage subjects');
-  console.log('   5. Assign subjects to classes as needed');
+  SeedLogger.section('✅ Database seeding completed successfully!');
+  SeedLogger.log('');
+  SeedLogger.log('📝 Next steps:');
+  SeedLogger.detail('1. Login to your admin dashboard');
+  SeedLogger.detail('2. Go to Settings > School Information to update school details');
+  SeedLogger.detail('3. Go to Academics > Classes to manage classes');
+  SeedLogger.detail('4. Go to Academics > Subjects to manage subjects');
+  SeedLogger.detail('5. Assign subjects to classes as needed');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e);
+    SeedLogger.error('Error seeding database:', e);
     process.exit(1);
   })
   .finally(async () => {
