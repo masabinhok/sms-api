@@ -3,25 +3,30 @@ import { ActivityService } from './activity.service';
 import { ActivityController } from './activity.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
+import { ConfigService } from '@nestjs/config';
+import { getKafkaBrokers } from '../../../libs/config/kafka.config';
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'ACTIVITY_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId: 'activity-client',
-            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096'],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'activity-client',
+              brokers: getKafkaBrokers(configService),
+            },
+            consumer: {
+              groupId: 'activity-client-consumer',
+            },
+            producer: {
+              createPartitioner: Partitioners.LegacyPartitioner,
+            },
           },
-          consumer: {
-            groupId: 'activity-client-consumer',
-          },
-          producer: {
-            createPartitioner: Partitioners.LegacyPartitioner,
-          },
-        },
+        })
       },
     ]),
   ],

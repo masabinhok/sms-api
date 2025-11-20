@@ -5,31 +5,37 @@ import { PrismaService } from './prisma.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
+import config from '../../libs/config/config';
+import { getKafkaBrokers } from '../../libs/config/kafka.config';
 
 @Module({
   imports: [
-     ClientsModule.register([
-          {
-            name: 'AUTH_SERVICE',
-            transport: Transport.KAFKA,
-            options: {
-              client: {
-                clientId: 'auth-client-from-student',
-                brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
-              }, 
-              consumer: {
-                groupId: 'auth-consumer-from-student'
-              },
-              producer: {
-                createPartitioner: Partitioners.LegacyPartitioner
-              }
-            }
-          }
-        ]),
     ConfigModule.forRoot({
       isGlobal: true, 
-      envFilePath: '.env' 
-    })
+      envFilePath: '.env',
+      load: [config]
+    }),
+    ClientsModule.registerAsync([
+      {
+        name: 'AUTH_SERVICE',
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'auth-client-from-student',
+              brokers: getKafkaBrokers(configService)
+            }, 
+            consumer: {
+              groupId: 'auth-consumer-from-student'
+            },
+            producer: {
+              createPartitioner: Partitioners.LegacyPartitioner
+            }
+          }
+        })
+      }
+    ])
   ],
   controllers: [AcademicsController],
   providers: [AcademicsService, PrismaService, ConfigService],

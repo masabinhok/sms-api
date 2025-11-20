@@ -4,25 +4,29 @@ import { AuthController } from './auth.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
 import { ConfigService } from '@nestjs/config';
+import { getKafkaBrokers } from '../../../libs/config/kafka.config';
 
 @Module({
   imports : [
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'AUTH_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId: 'auth-client',
-            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
-          }, 
-          consumer: {
-            groupId: 'auth-consumer-client'
-          },
-          producer: {
-            createPartitioner: Partitioners.LegacyPartitioner
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'auth-client',
+              brokers: getKafkaBrokers(configService)
+            }, 
+            consumer: {
+              groupId: 'auth-consumer-client'
+            },
+            producer: {
+              createPartitioner: Partitioners.LegacyPartitioner
+            }
           }
-        }
+        })
       }
     ])
   ],

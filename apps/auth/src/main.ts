@@ -2,14 +2,19 @@ import { NestFactory } from '@nestjs/core';
 import { AuthModule } from './auth.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
+import { ConfigService } from '@nestjs/config';
+import { getKafkaBrokers } from '../../libs/config/kafka.config';
 
 async function bootstrap() {
+  const appContext = await NestFactory.createApplicationContext(AuthModule);
+  const configService = appContext.get(ConfigService);
+  
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AuthModule, {
     transport: Transport.KAFKA,
     options: {
       client: {
         clientId: 'auth-server',
-        brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
+        brokers: getKafkaBrokers(configService)
       }, 
       consumer: {
         groupId: 'auth-server-server'

@@ -4,62 +4,74 @@ import { TeacherService } from './teacher.service';
 import { PrismaService } from './prisma.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import config from '../../libs/config/config';
+import { getKafkaBrokers } from '../../libs/config/kafka.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env'
+      envFilePath: '.env',
+      load: [config]
     }),
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: 'AUTH_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId: 'auth-client-from-teacher',
-            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
-          }, 
-          consumer: {
-            groupId: 'auth-consumer-from-teacher'
-          },
-          producer: {
-            createPartitioner: Partitioners.LegacyPartitioner
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'auth-client-from-teacher',
+              brokers: getKafkaBrokers(configService)
+            }, 
+            consumer: {
+              groupId: 'auth-consumer-from-teacher'
+            },
+            producer: {
+              createPartitioner: Partitioners.LegacyPartitioner
+            }
           }
-        }
+        })
       },
       {
         name: 'ACADEMICS_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId: 'academics-client-from-teacher',
-            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
-          },
-          consumer: {
-            groupId: 'academics-consumer-from-teacher'
-          },
-          producer: {
-            createPartitioner: Partitioners.LegacyPartitioner
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'academics-client-from-teacher',
+              brokers: getKafkaBrokers(configService)
+            },
+            consumer: {
+              groupId: 'academics-consumer-from-teacher'
+            },
+            producer: {
+              createPartitioner: Partitioners.LegacyPartitioner
+            }
           }
-        }
+        })
       },
       {
         name: 'ACTIVITY_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId: 'activity-client-from-teacher',
-            brokers: ['localhost:9094', 'localhost:9095', 'localhost:9096']
-          },
-          consumer: {
-            groupId: 'activity-consumer-from-teacher'
-          },
-          producer: {
-            createPartitioner: Partitioners.LegacyPartitioner
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'activity-client-from-teacher',
+              brokers: getKafkaBrokers(configService)
+            },
+            consumer: {
+              groupId: 'activity-consumer-from-teacher'
+            },
+            producer: {
+              createPartitioner: Partitioners.LegacyPartitioner
+            }
           }
-        }
+        })
       }
     ]),
   ],
