@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HandleStudentCreatedDto } from 'apps/libs/dtos/handle-student-created.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from './prisma.service';
+import { PasswordGenerator } from 'apps/libs/utils/password-generator.util';
 import { HandleTeacherCreatedDto } from 'apps/libs/dtos/handle-teacher-created.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { LoginDto } from 'apps/libs/dtos/login.dto';
@@ -134,11 +135,9 @@ export class AuthService {
   }
 
   generatePassword(): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const password = Array.from(
-      { length: 8 }, 
-      () => characters[Math.floor(Math.random() * characters.length)]).join('');
-    return password;
+    // Generate secure, user-friendly password (12-14 chars, no ambiguous characters)
+    // Meets requirements: uppercase, lowercase, digits, special chars
+    return PasswordGenerator.generateUserFriendly(14);
   }
 
   async generateHash(password: string): Promise<string> {
