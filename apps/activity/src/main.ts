@@ -4,6 +4,7 @@ import { Partitioners } from 'kafkajs';
 import { ActivityModule } from './activity.module';
 import { ConfigService } from '@nestjs/config';
 import { getKafkaBrokers } from '../../libs/config/kafka.config';
+import { RpcValidationFilter, AllExceptionsFilter } from 'apps/libs/filters';
 
 async function bootstrap() {
   const appContext = await NestFactory.createApplicationContext(ActivityModule);
@@ -24,6 +25,10 @@ async function bootstrap() {
       }
     }
   });
+
+  // Apply global exception filters for consistent error handling
+  app.useGlobalFilters(new RpcValidationFilter(), new AllExceptionsFilter());
+
   await app.listen();
 }
 bootstrap();

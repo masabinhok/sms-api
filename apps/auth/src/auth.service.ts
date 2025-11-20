@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
 import { HandleStudentCreatedDto } from 'apps/libs/dtos/handle-student-created.dto';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from './prisma.service';
@@ -10,6 +9,15 @@ import { Role, User } from '../generated/prisma';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PasswordChangeDto } from '../dtos/password-change.dto';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  UnauthorizedException,
+  ForbiddenException,
+  BadRequestException,
+  NotFoundException,
+  handleServiceError,
+} from 'apps/libs/exceptions';
 
 @Injectable()
 export class AuthService {
@@ -101,10 +109,12 @@ export class AuthService {
       console.error('Error creating admin profile:', error);
       
       if (error.code === 'P2002') {
-        throw new Error('Admin username already exists');
+        throw new ConflictException('Admin username already exists');
       }
       
-      throw new Error(`Failed to create admin profile: ${error.message}`);
+      throw new InternalServerErrorException('Failed to create admin profile', {
+        reason: error.message,
+      });
     }
   }
 
@@ -227,10 +237,12 @@ export class AuthService {
       
       // Handle specific Prisma errors
       if (error.code === 'P2002') {
-        throw new Error('Username or email already exists');
+        throw new ConflictException('Username or email already exists');
       }
       
-      throw new Error('Failed to create user credentials');
+      throw new InternalServerErrorException('Failed to create user credentials', {
+        reason: error.message,
+      });
     }
   } 
 
@@ -294,10 +306,7 @@ export class AuthService {
     })
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      throw new RpcException({
-        status: 401,
-        message: 'Invalid username or password or role.'
-      });
+      throw new UnauthorizedException('Invalid username or password or role.');
     }
 
     const tokens = await this.generateTokens(user.id, username, user.role);
@@ -335,17 +344,15 @@ export class AuthService {
       }
     })
 
-    if (!user || !user.refreshToken) throw new RpcException({
-      status: 403,
-      message: 'Forbidden: Invalid refresh token'
-    });
+    if (!user || !user.refreshToken) {
+      throw new ForbiddenException('Invalid refresh token');
+    }
 
     const matches = await bcrypt.compare(token, user.refreshToken);
 
-    if (!matches) throw new RpcException({
-      status: 401,
-      message: 'Invalid token'
-    });
+    if (!matches) {
+      throw new UnauthorizedException('Invalid token');
+    }
 
     const tokens = await this.generateTokens(userId, user.username, user.role);
     await this.updateRefreshToken(userId, tokens.refreshToken);
@@ -364,10 +371,7 @@ export class AuthService {
     });
 
     if(!loggedOutUser){
-      throw new RpcException({
-        status: 400,
-        message: 'No user to Logout'
-      });
+      throw new BadRequestException('No user to Logout');
     }
 
     // Log activity
@@ -392,10 +396,7 @@ export class AuthService {
 
     // Check if new password is the same as old password
     if (oldPassword === newPassword) {
-      throw new RpcException({
-        status: 400,
-        message: 'New password must be different from the old password'
-      });
+      throw new BadRequestException('New password must be different from the old password');
     }
 
     const user = await this.prisma.user.findUnique({
@@ -405,19 +406,13 @@ export class AuthService {
     });
 
     if(!user) {
-      throw new RpcException({
-        status: 401,
-        message: 'User not found'
-      });
+      throw new NotFoundException('User not found');
     }
 
     // Verify old password
     const isOldPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
     if(!isOldPasswordValid) {
-      throw new RpcException({
-        status: 401,
-        message: 'Incorrect old password'
-      });
+      throw new UnauthorizedException('Incorrect old password');
     }
 
     const hashedPassword = await this.generateHash(newPassword);
@@ -435,10 +430,7 @@ export class AuthService {
     });
 
     if(!updatedUser) {
-      throw new RpcException({
-        status: 400,
-        message: 'Failed to update password'
-      });
+      throw new InternalServerErrorException('Failed to update password');
     }
 
     // Log activity
@@ -494,7 +486,7 @@ export class AuthService {
   async getAdmin(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user || user.role !== 'ADMIN') {
-      throw new RpcException({ status: 404, message: 'Admin not found' });
+      throw new NotFoundException('Admin not found');
     }
   return { id: user.id, username: user.username, email: user.profileEmail, createdAt: user.createdAt };
   }
@@ -502,7 +494,7 @@ export class AuthService {
   async updateAdmin(id: string, data: any, actor?: { actorUserId?: string; actorUsername?: string; actorRole?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user || user.role !== 'ADMIN') {
-      throw new RpcException({ status: 404, message: 'Admin not found' });
+      throw new NotFoundException('Admin not found');
     }
 
     const updated = await this.prisma.user.update({ where: { id }, data: {
@@ -529,7 +521,7 @@ export class AuthService {
   async deleteAdmin(id: string, actor?: { actorUserId?: string; actorUsername?: string; actorRole?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user || user.role !== 'ADMIN') {
-      throw new RpcException({ status: 404, message: 'Admin not found' });
+      throw new NotFoundException('Admin not found');
     }
 
     await this.prisma.user.delete({ where: { id } });
@@ -568,10 +560,7 @@ export class AuthService {
 
     //already authenticated, but also double check 
     if(!user){
-      throw new RpcException({
-        status: 400, 
-        message: 'User not found!'
-      })
+      throw new NotFoundException('User not found');
     }
     //extract sensitive info like passwordHash and refreshToken
     const safeUser = await this.getSafeUser(user);
@@ -590,10 +579,7 @@ export class AuthService {
       }
     });
     if (!user) {
-      throw new RpcException({
-        status: 404,
-        message: 'User not found'
-      });
+      throw new NotFoundException('User not found');
     }
     // Generate a temporary password
     const tempPassword = this.generatePassword();
