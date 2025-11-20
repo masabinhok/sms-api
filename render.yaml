@@ -10,8 +10,8 @@ services:
     buildCommand: npm ci && npm run build
     # Start command executed inside the built image/container
     startCommand: ./start.sh
-    # Optional: adjust health check path if your app exposes one
-    healthCheckPath: "/"
+    # Health check endpoints for readiness probes
+    healthCheckPath: "/health/ready"
     # You should configure sensitive environment variables (DB URLs, JWT secrets, SMTP creds) in Render's dashboard
     envVars:
       - key: NODE_ENV

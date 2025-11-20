@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { HandleStudentCreatedDto } from 'apps/libs/dtos/handle-student-created.dto';
@@ -11,6 +11,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService
   ) {}
 
+  @Get('health')
+  health() {
+    return { 
+      status: 'ok', 
+      service: 'auth',
+      timestamp: new Date().toISOString() 
+    };
+  }
 
   @EventPattern('student.created')
   async handleStudentCreated(@Payload() payload: HandleStudentCreatedDto ){

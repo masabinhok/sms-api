@@ -10,6 +10,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AcademicsModule } from './academics/academics.module';
 import { ActivityModule } from './activity/activity.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [StudentModule, TeacherModule, AuthModule,
@@ -22,6 +23,7 @@ import { ActivityModule } from './activity/activity.module';
         }),
      AcademicsModule,
      ActivityModule,
+     HealthModule,
         
   ],
   controllers: [GatewayController],

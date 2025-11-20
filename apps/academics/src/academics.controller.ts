@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AcademicsService } from './academics.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UpdateSchoolDto } from 'apps/libs/dtos/update-school.dto';
@@ -11,6 +11,15 @@ import { AssignSubjectsToClassDto } from 'apps/libs/dtos/assign-subjects-to-clas
 @Controller()
 export class AcademicsController {
   constructor(private readonly academicsService: AcademicsService) {}
+
+  @Get('health')
+  health() {
+    return { 
+      status: 'ok', 
+      service: 'academics',
+      timestamp: new Date().toISOString() 
+    };
+  }
 
   // ==================== SCHOOL PATTERNS ====================
 

@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateStudentProfileDto } from '../../libs/dtos/create-student-profile.dto';
@@ -8,6 +8,15 @@ import { QueryStudentsDto } from '../../libs/dtos/query-students.dto';
 @Controller()
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
+
+  @Get('health')
+  health() {
+    return { 
+      status: 'ok', 
+      service: 'student',
+      timestamp: new Date().toISOString() 
+    };
+  }
 
   @MessagePattern('student.createProfile')
   async createStudentProfile(@Payload() createStudentProfileDto: CreateStudentProfileDto) {
