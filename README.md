@@ -47,13 +47,31 @@ A production-ready school management system built with **NestJS**, using **event
 ### Prerequisites
 - Node.js 20+
 - Docker & Docker Compose
+- Git (optional, for cloning)
 
 > **That's it!** Everything else (Kafka, PostgreSQL, databases) is handled by Docker Compose.
 
-### Option 1: Automated Setup (Recommended for Reviewers)
+### Step 1: Get the Code
 
-**For Windows (PowerShell):**
+**Option A: Clone with Git (Recommended)**
+```bash
+git clone https://github.com/masabinhok/sms-api.git
+cd sms-api
+```
+
+**Option B: Download ZIP**
+1. Go to [https://github.com/masabinhok/sms-api](https://github.com/masabinhok/sms-api)
+2. Click the green "Code" button → "Download ZIP"
+3. Extract and navigate to the folder
+
+### Step 2: Automated Setup (Recommended for Reviewers)
+
+**For Windows (PowerShell as Admin):**
 ```powershell
+# Enable script execution (first time only)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Run setup
 .\scripts\setup.ps1
 ```
 
@@ -77,7 +95,9 @@ This script will:
 npm run dev
 ```
 
-### Option 2: Manual Setup
+> **For detailed step-by-step instructions**, see [SETUP.md](SETUP.md) - A complete beginner-friendly guide!
+
+### Step 3: Manual Setup (Alternative)
 
 #### 1. Install Dependencies
 ```bash
