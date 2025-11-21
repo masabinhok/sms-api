@@ -22,7 +22,7 @@ if (-not $dockerInstalled) {
     exit 1
 }
 
-Write-Host "✓ Node.js and Docker are installed" -ForegroundColor Green
+Write-Host "[OK] Node.js and Docker are installed" -ForegroundColor Green
 Write-Host ""
 
 # Install dependencies
@@ -43,7 +43,7 @@ if (-not $envExists) {
     Write-Host ""
 }
 else {
-    Write-Host "✓ .env file already exists" -ForegroundColor Green
+    Write-Host "[OK] .env file already exists" -ForegroundColor Green
     Write-Host ""
 }
 
@@ -89,7 +89,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 
 Write-Host "======================================" -ForegroundColor Cyan
-Write-Host "✓ Setup Complete!" -ForegroundColor Green
+Write-Host "[OK] Setup Complete!" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Services running:" -ForegroundColor White
