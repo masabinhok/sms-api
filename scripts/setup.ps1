@@ -96,12 +96,29 @@ docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e ACTIVIT
 Write-Host "[OK] All migrations completed" -ForegroundColor Green
 Write-Host ""
 
-# Seed database (optional)
-Write-Host "Seeding database..." -ForegroundColor Yellow
-$seedResult = npm run seed:academics 2>&1
+# Seed databases
+Write-Host "Seeding databases..." -ForegroundColor Yellow
+Write-Host "  - Auth service (users)..." -ForegroundColor Gray
+npm run seed:auth 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "! Seeding had some issues, but setup can continue" -ForegroundColor Yellow
+    Write-Host "! Auth seeding had issues" -ForegroundColor Yellow
 }
+Write-Host "  - Academics service (school, classes, subjects)..." -ForegroundColor Gray
+npm run seed:academics 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "! Academics seeding had issues" -ForegroundColor Yellow
+}
+Write-Host "  - Teacher service (teachers)..." -ForegroundColor Gray
+npm run seed:teacher 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "! Teacher seeding had issues" -ForegroundColor Yellow
+}
+Write-Host "  - Student service (students)..." -ForegroundColor Gray
+npm run seed:student 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "! Student seeding had issues" -ForegroundColor Yellow
+}
+Write-Host "[OK] All database seeding completed" -ForegroundColor Green
 Write-Host ""
 
 Write-Host "======================================" -ForegroundColor Cyan

@@ -88,7 +88,7 @@ This script will:
 - ✅ Create all databases automatically
 - ✅ Generate Prisma clients
 - ✅ Run all database migrations
-- ✅ Seed sample data
+- ✅ Seed sample data (users, academics, teachers, students)
 
 **Then start the services:**
 ```bash
@@ -143,10 +143,22 @@ npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma
 npx prisma migrate deploy --schema=apps/activity/prisma/schema.prisma
 ```
 
-#### 5. Seed Database (Optional)
+#### 5. Seed Databases (Optional)
 ```bash
-npm run seed:academics
+# Seed all databases at once
+npm run seed:all
+
+# Or seed individually
+npm run seed:auth        # Create sample users (admin, teachers, students, guardians)
+npm run seed:academics   # Create school info, classes, subjects
+npm run seed:teacher     # Create sample teacher profiles
+npm run seed:student     # Create sample student profiles
 ```
+
+**Default credentials after seeding:**
+- Admin: `admin@school.edu` / `Password123!`
+- Teacher: `john.smith@school.edu` / `Password123!`
+- Student: `emma.thompson@student.school.edu` / `Password123!`
 
 #### 6. Start All Services
 ```bash
@@ -194,6 +206,15 @@ npm run test              # Unit tests
 npm run test:watch        # Watch mode
 npm run test:cov          # Coverage
 npm run test:e2e          # E2E tests
+```
+
+### Seed Database
+```bash
+npm run seed:all          # Seed all services
+npm run seed:auth         # Seed users only
+npm run seed:academics    # Seed academics only
+npm run seed:teacher      # Seed teachers only
+npm run seed:student      # Seed students only
 ```
 
 ## Key Features
@@ -476,7 +497,11 @@ npm run build            # Build production bundle
 npm run start:prod       # Start production server
 npm run lint             # Lint code
 npm run format           # Format code with Prettier
-npm run seed:academics   # Seed academics database
+npm run seed:all         # Seed all databases (auth, academics, teachers, students)
+npm run seed:auth        # Seed auth database (users)
+npm run seed:academics   # Seed academics database (school, classes, subjects)
+npm run seed:teacher     # Seed teacher database
+npm run seed:student     # Seed student database
 ```
 
 ## Environment Variables

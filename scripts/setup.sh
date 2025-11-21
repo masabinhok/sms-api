@@ -83,9 +83,17 @@ docker run --rm --network review_kafka-network -v "$(pwd)":/app -w /app -e ACTIV
 echo "✅ All migrations completed"
 echo ""
 
-# Seed database (optional)
-echo "🌱 Seeding database..."
-npm run seed:academics || echo "⚠️  Seeding failed, but setup can continue"
+# Seed databases
+echo "🌱 Seeding databases..."
+echo "  - Auth service (users)..."
+npm run seed:auth >/dev/null 2>&1 || echo "⚠️  Auth seeding had issues"
+echo "  - Academics service (school, classes, subjects)..."
+npm run seed:academics >/dev/null 2>&1 || echo "⚠️  Academics seeding had issues"
+echo "  - Teacher service (teachers)..."
+npm run seed:teacher >/dev/null 2>&1 || echo "⚠️  Teacher seeding had issues"
+echo "  - Student service (students)..."
+npm run seed:student >/dev/null 2>&1 || echo "⚠️  Student seeding had issues"
+echo "✅ All database seeding completed"
 echo ""
 
 echo "======================================"

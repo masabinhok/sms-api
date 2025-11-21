@@ -26,7 +26,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/api/test/jest-e2e.json",
-    "seed:academics": "ts-node apps/academics/prisma/seed.ts"
+    "seed:auth": "ts-node apps/auth/prisma/seed.ts",
+    "seed:academics": "ts-node apps/academics/prisma/seed.ts",
+    "seed:student": "ts-node apps/student/prisma/seed.ts",
+    "seed:teacher": "ts-node apps/teacher/prisma/seed.ts",
+    "seed:all": "npm run seed:auth && npm run seed:academics && npm run seed:teacher && npm run seed:student"
   },
   "prisma": {
     "seed": "ts-node apps/academics/prisma/seed.ts"
