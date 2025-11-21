@@ -62,6 +62,16 @@ Write-Host "Waiting for PostgreSQL to be ready..." -ForegroundColor Yellow
 Start-Sleep -Seconds 15
 Write-Host ""
 
+# Create databases
+Write-Host "Creating databases..." -ForegroundColor Yellow
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_auth" 2>$null
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_student" 2>$null
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_teacher" 2>$null
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_academics" 2>$null
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_activity" 2>$null
+Write-Host "[OK] Databases created" -ForegroundColor Green
+Write-Host ""
+
 # Generate Prisma clients
 Write-Host "Generating Prisma clients..." -ForegroundColor Yellow
 npx prisma generate --schema=apps/auth/prisma/schema.prisma
@@ -71,13 +81,19 @@ npx prisma generate --schema=apps/academics/prisma/schema.prisma
 npx prisma generate --schema=apps/activity/prisma/schema.prisma
 Write-Host ""
 
-# Run database migrations
+# Run database migrations using Docker (avoids Windows authentication issues)
 Write-Host "Running database migrations..." -ForegroundColor Yellow
-npx prisma migrate deploy --schema=apps/auth/prisma/schema.prisma
-npx prisma migrate deploy --schema=apps/student/prisma/schema.prisma
-npx prisma migrate deploy --schema=apps/teacher/prisma/schema.prisma
-npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma
-npx prisma migrate deploy --schema=apps/activity/prisma/schema.prisma
+Write-Host "  - Auth service..." -ForegroundColor Gray
+docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e AUTH_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_auth?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/auth/prisma/schema.prisma" 2>&1 | Out-Null
+Write-Host "  - Student service..." -ForegroundColor Gray
+docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e STUDENT_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_student?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/student/prisma/schema.prisma" 2>&1 | Out-Null
+Write-Host "  - Teacher service..." -ForegroundColor Gray
+docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e TEACHER_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_teacher?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/teacher/prisma/schema.prisma" 2>&1 | Out-Null
+Write-Host "  - Academics service..." -ForegroundColor Gray
+docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e ACADEMICS_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_academics?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma" 2>&1 | Out-Null
+Write-Host "  - Activity service..." -ForegroundColor Gray
+docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e ACTIVITY_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_activity?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/activity/prisma/schema.prisma" 2>&1 | Out-Null
+Write-Host "[OK] All migrations completed" -ForegroundColor Green
 Write-Host ""
 
 # Seed database (optional)

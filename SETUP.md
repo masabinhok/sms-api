@@ -401,23 +401,30 @@ docker-compose restart kafka1 kafka2 kafka3
 npm run dev
 ```
 
-### ❌ Problem: "Database connection refused"
+### ❌ Problem: "Database connection refused" or "Authentication failed"
 
-**What it means**: PostgreSQL container isn't ready
+**What it means**: Either PostgreSQL container isn't ready, or databases weren't created
 
 **Solution**:
 ```bash
 # Check if PostgreSQL is running
-docker-compose ps sms-postgres
+docker ps | grep sms-postgres
 
 # If not running, start it
-docker-compose up -d sms-postgres
+docker-compose up -d postgres
 
-# View logs to see what's wrong
-docker-compose logs sms-postgres
+# Wait 15 seconds for it to be ready
+# Then create databases manually:
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_auth"
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_student"
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_teacher"
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_academics"
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_activity"
 
-# Wait 10 seconds for it to be fully ready
+# Now re-run the setup script
 ```
+
+**Note**: The automated setup script should handle this automatically. If you're seeing this error, it means the database creation step was skipped or failed.
 
 ### ❌ Problem: "Module not found" errors
 
