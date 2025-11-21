@@ -1,4 +1,25 @@
 services:
+  # PostgreSQL Database - All microservices databases
+  postgres:
+    image: postgres:16-alpine
+    container_name: sms-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_MULTIPLE_DATABASES=sms_auth,sms_student,sms_teacher,sms_academics,sms_activity
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/create-multiple-databases.sh:/docker-entrypoint-initdb.d/create-multiple-databases.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kafka-network
+
   kafka1:
     image: bitnami/kafka
     container_name: kafka1
@@ -80,3 +101,7 @@ services:
 networks:
   kafka-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

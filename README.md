@@ -46,17 +46,45 @@ A production-ready school management system built with **NestJS**, using **event
 
 ### Prerequisites
 - Node.js 20+
-- Docker & Docker Compose (for Kafka cluster)
-- PostgreSQL 14+ (separate installation required - **not included in docker-compose.yml**)
-  - Can be installed locally or run in a separate Docker container
-  - Required for all microservices except Email service
+- Docker & Docker Compose
 
-### 1. Install Dependencies
+> **That's it!** Everything else (Kafka, PostgreSQL, databases) is handled by Docker Compose.
+
+### Option 1: Automated Setup (Recommended for Reviewers)
+
+**For Windows (PowerShell):**
+```powershell
+.\scripts\setup.ps1
+```
+
+**For Linux/Mac:**
+```bash
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
+
+This script will:
+- ✅ Install all npm dependencies
+- ✅ Create `.env` file from template
+- ✅ Start Kafka cluster (3 brokers) + PostgreSQL
+- ✅ Create all databases automatically
+- ✅ Generate Prisma clients
+- ✅ Run all database migrations
+- ✅ Seed sample data
+
+**Then start the services:**
+```bash
+npm run dev
+```
+
+### Option 2: Manual Setup
+
+#### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Start Kafka Cluster
+#### 2. Start Infrastructure (Kafka + PostgreSQL)
 ```bash
 docker-compose up -d
 ```
@@ -64,41 +92,43 @@ docker-compose up -d
 This starts:
 - 3 Kafka brokers (ports 9094, 9095, 9096)
 - Kafka UI (http://localhost:8080)
+- PostgreSQL with all databases (port 5432)
 
-### 3. Configure Environment Variables
+#### 3. Configure Environment Variables
 
 > **Security Warning**: Never commit `.env` files to version control. Use the provided `.env.example` as a template.
 
-Create `.env` file in the root directory:
-```env
-# Copy from .env.example and fill in your values
-# Example for academics service
-ACADEMICS_DATABASE_URL="postgresql://user:pass@localhost:5432/academics"
+```bash
+# Copy the example file
+cp .env.example .env
 
-# JWT secrets
-JWT_ACCESS_SECRET="your-access-secret"
-JWT_REFRESH_SECRET="your-refresh-secret"
-
-# Kafka brokers
-KAFKA_BROKERS="localhost:9094,localhost:9095,localhost:9096"
+# The default values work with docker-compose!
+# No changes needed for local development
 ```
 
-### 4. Run Database Migrations
+#### 4. Generate Prisma Clients & Run Migrations
 ```bash
-# For each service with a database
-npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma
+# Generate Prisma clients
+npx prisma generate --schema=apps/auth/prisma/schema.prisma
+npx prisma generate --schema=apps/student/prisma/schema.prisma
+npx prisma generate --schema=apps/teacher/prisma/schema.prisma
+npx prisma generate --schema=apps/academics/prisma/schema.prisma
+npx prisma generate --schema=apps/activity/prisma/schema.prisma
+
+# Run migrations
 npx prisma migrate deploy --schema=apps/auth/prisma/schema.prisma
 npx prisma migrate deploy --schema=apps/student/prisma/schema.prisma
 npx prisma migrate deploy --schema=apps/teacher/prisma/schema.prisma
+npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma
 npx prisma migrate deploy --schema=apps/activity/prisma/schema.prisma
 ```
 
-### 5. Seed Database (Optional)
+#### 5. Seed Database (Optional)
 ```bash
 npm run seed:academics
 ```
 
-### 6. Start All Services
+#### 6. Start All Services
 ```bash
 # Development mode (all services in parallel)
 npm run dev
@@ -113,9 +143,12 @@ npm run start:activity
 npm run start:email
 ```
 
-### 7. Access API Documentation
-- Swagger UI: http://localhost:3000/api/docs
-- Health Check: http://localhost:3000/health
+### Access Points
+- **API Gateway**: http://localhost:3000
+- **Swagger UI**: http://localhost:3000/api/docs
+- **Health Check**: http://localhost:3000/health
+- **Kafka UI**: http://localhost:8080
+- **PostgreSQL**: localhost:5432 (user: postgres, pass: postgres)
 
 ## Development
 
