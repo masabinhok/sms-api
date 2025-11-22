@@ -9,9 +9,14 @@ import {
   swaggerUiOptions 
 } from 'apps/libs/config/swagger.config';
 import { HttpExceptionFilter, AllHttpExceptionsFilter } from 'apps/libs/filters';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(GatewayModule);
+  const app = await NestFactory.create<NestExpressApplication>(GatewayModule);
+  
+  // Serve static files (for brochure downloads, etc.)
+  app.useStaticAssets(join(__dirname, '..', 'public'));
 
   app.setGlobalPrefix('api/v1');
   // Swagger Documentation Setup

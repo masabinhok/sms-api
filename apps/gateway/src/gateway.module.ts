@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AcademicsModule } from './academics/academics.module';
 import { ActivityModule } from './activity/activity.module';
 import { HealthModule } from './health/health.module';
+import { PublicModule } from './public/public.module';
 
 @Module({
   imports: [StudentModule, TeacherModule, AuthModule,
@@ -24,6 +25,7 @@ import { HealthModule } from './health/health.module';
      AcademicsModule,
      ActivityModule,
      HealthModule,
+     PublicModule,
         
   ],
   controllers: [GatewayController],

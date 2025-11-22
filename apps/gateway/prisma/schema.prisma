@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PUBLIC")
+}
+
+model ContactInquiry {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String
+  subject   String
+  message   String
+  status    String   @default("pending") // pending, contacted, resolved
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_inquiries")
+}
+
+model VisitRequest {
+  id               String   @id @default(uuid())
+  name             String
+  email            String
+  phone            String
+  preferredDate    String
+  preferredTime    String
+  numberOfVisitors String
+  notes            String?
+  status           String   @default("pending") // pending, confirmed, completed, cancelled
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("visit_requests")
+}
+
+model BrochureRequest {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("brochure_requests")
+}
