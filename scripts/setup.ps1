@@ -134,5 +134,5 @@ Write-Host "To start the application:" -ForegroundColor White
 Write-Host "   npm run dev" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "API Documentation (after starting):" -ForegroundColor White
-Write-Host "   http://localhost:3000/api/docs" -ForegroundColor Cyan
+Write-Host "   http://localhost:3000/api/v1/api/docs" -ForegroundColor Cyan
 Write-Host ""

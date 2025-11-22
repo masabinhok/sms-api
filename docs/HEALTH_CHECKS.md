@@ -123,7 +123,7 @@ The `Dockerfile` includes a health check:
 
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health/live', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:3000/api/v1/health/live', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 ```
 
 **Parameters:**
@@ -187,7 +187,7 @@ services:
   gateway:
     image: sms-gateway
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health/live', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/v1/health/live', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
       timeout: 3s
       start_period: 40s
@@ -238,9 +238,9 @@ npm install @nestjs/terminus
 npm run dev
 
 # Test gateway health endpoints
-curl http://localhost:3000/health
-curl http://localhost:3000/health/ready
-curl http://localhost:3000/health/live
+curl http://localhost:3000/api/v1/health
+curl http://localhost:3000/api/v1/health/ready
+curl http://localhost:3000/api/v1/health/live
 
 # Test microservice health
 curl http://localhost:3001/health  # auth
@@ -319,13 +319,13 @@ kubectl logs <pod-name>
 kubectl logs -f <gateway-pod>
 
 # Check Kafka connection status
-curl http://localhost:3000/health | jq '.info.kafka'
+curl http://localhost:3000/api/v1/health | jq '.info.kafka'
 ```
 
 ### High Memory Usage
 ```bash
 # Check memory health
-curl http://localhost:3000/health | jq '.info.memory_heap'
+curl http://localhost:3000/api/v1/health | jq '.info.memory_heap'
 
 # Adjust heap limit in deployment
 NODE_OPTIONS="--max-old-space-size=512"

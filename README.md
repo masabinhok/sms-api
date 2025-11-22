@@ -177,8 +177,8 @@ npm run start:email
 
 ### Access Points
 - **API Gateway**: http://localhost:3000
-- **Swagger UI**: http://localhost:3000/api/docs
-- **Health Check**: http://localhost:3000/health
+- **Swagger UI**: http://localhost:3000/api/v1/api/docs
+- **Health Check**: http://localhost:3000/api/v1/health
 - **Kafka UI**: http://localhost:8080
 - **PostgreSQL**: localhost:5432 (user: postgres, pass: postgres)
 
@@ -309,7 +309,7 @@ npx prisma generate --schema=apps/activity/prisma/schema.prisma
 ### Authentication
 ```bash
 # Register a new user
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://localhost:3000/api/v1/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@school.com",
@@ -318,7 +318,7 @@ curl -X POST http://localhost:3000/api/auth/register \
   }'
 
 # Login
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3000/api/v1/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@school.com",
@@ -331,18 +331,18 @@ curl -X POST http://localhost:3000/api/auth/login \
 ### Health Check
 ```bash
 # Full health check
-curl http://localhost:3000/health
+curl http://localhost:3000/api/v1/health
 
 # Readiness probe
-curl http://localhost:3000/health/ready
+curl http://localhost:3000/api/v1/health/ready
 
 # Liveness probe
-curl http://localhost:3000/health/live
+curl http://localhost:3000/api/v1/health/live
 ```
 
 ### Using Swagger UI
 For interactive API testing, visit:
-- **Swagger Documentation**: http://localhost:3000/api/docs
+- **Swagger Documentation**: http://localhost:3000/api/v1/api/docs
 - All endpoints with request/response schemas
 - Built-in "Try it out" functionality
 

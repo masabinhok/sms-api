@@ -172,7 +172,7 @@ If any say "Exit" or "Unhealthy", try: `docker-compose restart`
 
 Open your web browser and go to:
 ```
-http://localhost:3000/health
+http://localhost:3000/api/v1/health
 ```
 
 You should see a response like this:
@@ -193,7 +193,7 @@ You should see a response like this:
 
 This is where it gets fun! Open your browser to:
 ```
-http://localhost:3000/api/docs
+http://localhost:3000/api/v1/api/docs
 ```
 
 You'll see a beautiful interactive API documentation (Swagger UI) where you can:
@@ -230,7 +230,7 @@ Let's test the authentication system with a real request.
 
 ### 6.1 Using Swagger UI (Easiest - No Code!)
 
-1. Go to [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+1. Go to [http://localhost:3000/api/v1/api/docs](http://localhost:3000/api/v1/api/docs)
 2. Find **"Auth"** section and click to expand
 3. Click on **POST /api/auth/register**
 4. Click the **"Try it out"** button
@@ -265,7 +265,7 @@ You've just created a user! 🎉
 
 **Register a User:**
 ```bash
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://localhost:3000/api/v1/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "reviewer@test.com",
@@ -276,7 +276,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 
 **Login:**
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3000/api/v1/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "reviewer@test.com",
@@ -545,8 +545,8 @@ When evaluating this project, check out:
 | Service | URL |
 |---------|-----|
 | API Gateway | http://localhost:3000 |
-| Swagger Docs | http://localhost:3000/api/docs |
-| Health Check | http://localhost:3000/health |
+| Swagger Docs | http://localhost:3000/api/v1/api/docs |
+| Health Check | http://localhost:3000/api/v1/health |
 | Kafka UI | http://localhost:8080 |
 
 ### Useful Commands
