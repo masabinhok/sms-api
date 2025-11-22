@@ -18,5 +18,15 @@ export class EmailController {
   async handleForgotPassword(data: { email: string; tempPassword: string }){
     return this.emailService.handleForgotPassword(data);
   }
+
+  @EventPattern('email.send')
+  async handleSendEmail(data: {
+    to: string;
+    subject: string;
+    html?: string;
+    text?: string;
+  }) {
+    return this.emailService.sendEmail(data);
+  }
   
 }
