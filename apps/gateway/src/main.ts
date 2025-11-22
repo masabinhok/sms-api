@@ -13,6 +13,7 @@ import { HttpExceptionFilter, AllHttpExceptionsFilter } from 'apps/libs/filters'
 async function bootstrap() {
   const app = await NestFactory.create(GatewayModule);
 
+  app.setGlobalPrefix('api/v1');
   // Swagger Documentation Setup
   const document = SwaggerModule.createDocument(app, gatewaySwaggerConfig, swaggerDocumentOptions);
   SwaggerModule.setup('api/docs', app, document, swaggerUiOptions);
