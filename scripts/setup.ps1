@@ -69,6 +69,7 @@ docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_student" 2>$nu
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_teacher" 2>$null
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_academics" 2>$null
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_activity" 2>$null
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_public" 2>$null
 Write-Host "[OK] Databases created" -ForegroundColor Green
 Write-Host ""
 
@@ -79,6 +80,7 @@ npx prisma generate --schema=apps/student/prisma/schema.prisma
 npx prisma generate --schema=apps/teacher/prisma/schema.prisma
 npx prisma generate --schema=apps/academics/prisma/schema.prisma
 npx prisma generate --schema=apps/activity/prisma/schema.prisma
+npx prisma generate --schema=apps/gateway/prisma/schema.prisma
 Write-Host ""
 
 # Run database migrations using Docker (avoids Windows authentication issues)
@@ -93,6 +95,8 @@ Write-Host "  - Academics service..." -ForegroundColor Gray
 docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e ACADEMICS_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_academics?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma" 2>&1 | Out-Null
 Write-Host "  - Activity service..." -ForegroundColor Gray
 docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e ACTIVITY_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_activity?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/activity/prisma/schema.prisma" 2>&1 | Out-Null
+Write-Host "  - Gateway/Public service..." -ForegroundColor Gray
+docker run --rm --network review_kafka-network -v ${PWD}:/app -w /app -e DATABASE_URL_PUBLIC="postgresql://postgres:postgres@postgres:5432/sms_public?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/gateway/prisma/schema.prisma" 2>&1 | Out-Null
 Write-Host "[OK] All migrations completed" -ForegroundColor Green
 Write-Host ""
 

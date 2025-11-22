@@ -56,6 +56,7 @@ docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_student" 2>/de
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_teacher" 2>/dev/null || true
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_academics" 2>/dev/null || true
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_activity" 2>/dev/null || true
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_public" 2>/dev/null || true
 echo "✅ Databases created"
 echo ""
 
@@ -66,6 +67,7 @@ npx prisma generate --schema=apps/student/prisma/schema.prisma
 npx prisma generate --schema=apps/teacher/prisma/schema.prisma
 npx prisma generate --schema=apps/academics/prisma/schema.prisma
 npx prisma generate --schema=apps/activity/prisma/schema.prisma
+npx prisma generate --schema=apps/gateway/prisma/schema.prisma
 echo ""
 
 # Run database migrations using Docker (avoids authentication issues)
@@ -80,6 +82,8 @@ echo "  - Academics service..."
 docker run --rm --network review_kafka-network -v "$(pwd)":/app -w /app -e ACADEMICS_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_academics?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma" >/dev/null 2>&1
 echo "  - Activity service..."
 docker run --rm --network review_kafka-network -v "$(pwd)":/app -w /app -e ACTIVITY_DATABASE_URL="postgresql://postgres:postgres@postgres:5432/sms_activity?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/activity/prisma/schema.prisma" >/dev/null 2>&1
+echo "  - Gateway/Public service..."
+docker run --rm --network review_kafka-network -v "$(pwd)":/app -w /app -e DATABASE_URL_PUBLIC="postgresql://postgres:postgres@postgres:5432/sms_public?schema=public" node:20-alpine sh -c "npx prisma migrate deploy --schema=apps/gateway/prisma/schema.prisma" >/dev/null 2>&1
 echo "✅ All migrations completed"
 echo ""
 

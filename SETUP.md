@@ -116,7 +116,7 @@ The setup script will:
 2. ✅ Create a `.env` configuration file
 3. ✅ Start Kafka cluster (message broker for microservices)
 4. ✅ Start PostgreSQL database
-5. ✅ Create all 5 databases automatically
+5. ✅ Create all 6 databases automatically (auth, student, teacher, academics, activity, public)
 6. ✅ Generate database clients
 7. ✅ Run database migrations (create tables)
 8. ✅ Seed sample data (add test data)
@@ -134,7 +134,7 @@ npm run dev
 ### What You'll See
 
 Your terminal will start showing logs from 7 different services starting up:
-- 🚪 **API Gateway** (port 3000) - The main entry point
+- 🚪 **API Gateway** (port 3000) - The main entry point + public endpoints
 - 🔐 **Auth Service** - Handles login and authentication
 - 👨‍🎓 **Student Service** - Manages student data
 - 👨‍🏫 **Teacher Service** - Manages teacher data
@@ -261,7 +261,43 @@ You've just created a user! 🎉
 4. Click **"Execute"**
 5. You'll get back `access_token` and `refresh_token` - these are your session keys!
 
-### 6.3 Using Command Line (For Advanced Users)
+### 6.3 Try Public Endpoints (No Login Required!)
+
+These endpoints work without authentication - perfect for testing:
+
+**In Swagger:**
+1. Find **"Public"** section
+2. Try **POST /public/contact-inquiry** - Submit a contact form
+3. Try **POST /public/schedule-visit** - Schedule a campus visit
+4. Try **POST /public/brochure-request** - Request school brochure
+
+**Using Command Line:**
+```bash
+# Submit contact inquiry
+curl -X POST http://localhost:3000/api/v1/public/contact-inquiry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test@example.com",
+    "phone": "+1-555-0123",
+    "subject": "Testing",
+    "message": "This is a test inquiry"
+  }'
+
+# Schedule campus visit
+curl -X POST http://localhost:3000/api/v1/public/schedule-visit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Visitor",
+    "email": "visitor@example.com",
+    "phone": "+1-555-0456",
+    "preferredDate": "2025-12-15",
+    "preferredTime": "10:00 AM",
+    "numberOfVisitors": "2"
+  }'
+```
+
+### 6.4 Using Command Line (For Advanced Users)
 
 **Register a User:**
 ```bash
@@ -284,9 +320,10 @@ curl -X POST http://localhost:3000/api/v1/api/auth/login \
   }'
 ```
 
-### 6.4 Explore More Endpoints
+### 6.5 Explore More Endpoints
 
 Try out these other endpoints in Swagger:
+- 🌐 **Public**: Contact forms, visit scheduling, brochure requests (no auth required!)
 - 👨‍🎓 **Students**: Create, list, update student records
 - 👨‍🏫 **Teachers**: Manage teacher information
 - 📚 **Academics**: Create schools, classes, subjects
@@ -420,6 +457,7 @@ docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_student"
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_teacher"
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_academics"
 docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_activity"
+docker exec sms-postgres psql -U postgres -c "CREATE DATABASE sms_public"
 
 # Now re-run the setup script
 ```
@@ -441,6 +479,7 @@ npx prisma generate --schema=apps/student/prisma/schema.prisma
 npx prisma generate --schema=apps/teacher/prisma/schema.prisma
 npx prisma generate --schema=apps/academics/prisma/schema.prisma
 npx prisma generate --schema=apps/activity/prisma/schema.prisma
+npx prisma generate --schema=apps/gateway/prisma/schema.prisma
 ```
 
 ### 🔄 Nuclear Option: Complete Fresh Start

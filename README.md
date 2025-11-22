@@ -34,7 +34,7 @@ A production-ready school management system built with **NestJS**, using **event
 
 | Service | Description | Port | Database |
 |---------|-------------|------|----------|
-| **Gateway** | API Gateway, routing, authentication | 3000 | - |
+| **Gateway** | API Gateway, routing, authentication, public endpoints | 3000 | PostgreSQL (Public) |
 | **Auth** | User authentication, JWT tokens, password management | - | PostgreSQL |
 | **Student** | Student profile, enrollment, records | - | PostgreSQL |
 | **Teacher** | Teacher profile, assignments | - | PostgreSQL |
@@ -134,6 +134,7 @@ npx prisma generate --schema=apps/student/prisma/schema.prisma
 npx prisma generate --schema=apps/teacher/prisma/schema.prisma
 npx prisma generate --schema=apps/academics/prisma/schema.prisma
 npx prisma generate --schema=apps/activity/prisma/schema.prisma
+npx prisma generate --schema=apps/gateway/prisma/schema.prisma
 
 # Run migrations
 npx prisma migrate deploy --schema=apps/auth/prisma/schema.prisma
@@ -141,6 +142,7 @@ npx prisma migrate deploy --schema=apps/student/prisma/schema.prisma
 npx prisma migrate deploy --schema=apps/teacher/prisma/schema.prisma
 npx prisma migrate deploy --schema=apps/academics/prisma/schema.prisma
 npx prisma migrate deploy --schema=apps/activity/prisma/schema.prisma
+npx prisma migrate deploy --schema=apps/gateway/prisma/schema.prisma
 ```
 
 #### 5. Seed Databases (Optional)
@@ -305,6 +307,43 @@ npx prisma generate --schema=apps/activity/prisma/schema.prisma
 4. Restart the specific service
 
 ## API Usage Examples
+
+### Public Endpoints (No Authentication Required)
+
+```bash
+# Submit contact inquiry
+curl -X POST http://localhost:3000/api/v1/public/contact-inquiry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1-555-0123",
+    "subject": "Admission Information",
+    "message": "I would like to know more about the admission process."
+  }'
+
+# Schedule campus visit
+curl -X POST http://localhost:3000/api/v1/public/schedule-visit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "phone": "+1-555-0456",
+    "preferredDate": "2025-12-15",
+    "preferredTime": "10:00 AM",
+    "numberOfVisitors": "2",
+    "notes": "Interested in science facilities"
+  }'
+
+# Request brochure
+curl -X POST http://localhost:3000/api/v1/public/brochure-request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Mike Johnson",
+    "email": "mike@example.com",
+    "phone": "+1-555-0789"
+  }'
+```
 
 ### Authentication
 ```bash
@@ -515,6 +554,9 @@ npm run seed:student     # Seed student database
 | `JWT_REFRESH_EXPIRE` | Refresh token expiry | 7d |
 | `KAFKA_BROKERS` | Kafka broker addresses | localhost:9094,... |
 | `*_DATABASE_URL` | Service database URLs | - |
+| `DATABASE_URL_PUBLIC` | Public data database URL | - |
+| `ADMIN_EMAIL` | Admin notification email | admin@school.edu |
+| `FRONTEND_URL` | Frontend application URL | http://localhost:4000 |
 
 ## License
 
