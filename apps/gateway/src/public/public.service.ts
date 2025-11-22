@@ -21,9 +21,14 @@ export class PublicService {
   }
 
   async onModuleInit() {
-    // Connect to Kafka topics
-    this.emailClient.subscribeToResponseOf('email.send');
-    await this.emailClient.connect();
+    try {
+      // Connect to Kafka topics
+      this.emailClient.subscribeToResponseOf('email.send');
+      await this.emailClient.connect();
+      this.logger.log('Successfully connected to Kafka email service');
+    } catch (error) {
+      this.logger.error(`Failed to connect to Kafka email service: ${error.message}`);
+    }
   }
 
   async handleContactInquiry(dto: ContactInquiryDto) {
@@ -42,6 +47,7 @@ export class PublicService {
       this.logger.log(`Contact inquiry created: ${inquiry.id}`);
 
       // Send email notification to school admin
+      this.logger.log(`Sending contact inquiry notification email to ${this.adminEmail}`);
       this.emailClient.emit('email.send', {
         to: this.adminEmail,
         subject: `New Contact Inquiry: ${dto.subject}`,
@@ -67,6 +73,7 @@ export class PublicService {
       });
 
       // Send confirmation email to the person who submitted
+      this.logger.log(`Sending contact inquiry confirmation email to ${dto.email}`);
       this.emailClient.emit('email.send', {
         to: dto.email,
         subject: 'Thank you for contacting us!',
@@ -118,6 +125,7 @@ export class PublicService {
       this.logger.log(`Visit request created: ${visitRequest.id}`);
 
       // Notify school admin with visit details
+      this.logger.log(`Sending visit request notification email to ${this.adminEmail}`);
       this.emailClient.emit('email.send', {
         to: this.adminEmail,
         subject: `New Campus Visit Request - ${dto.preferredDate}`,
@@ -150,6 +158,7 @@ export class PublicService {
       });
 
       // Send confirmation email to visitor
+      this.logger.log(`Sending visit request confirmation email to ${dto.email}`);
       this.emailClient.emit('email.send', {
         to: dto.email,
         subject: 'Campus Visit Request Received - Confirmation Pending',
@@ -216,6 +225,7 @@ export class PublicService {
       const brochureUrl = `${frontendUrl}/downloads/school-brochure.pdf`;
 
       // Send brochure PDF link via email to requester
+      this.logger.log(`Sending brochure email to ${dto.email}`);
       this.emailClient.emit('email.send', {
         to: dto.email,
         subject: '📚 Your School Brochure is Ready!',
@@ -260,6 +270,7 @@ export class PublicService {
       });
 
       // Optional: Notify admin about brochure download for analytics/follow-up
+      this.logger.log(`Sending brochure request notification to ${this.adminEmail}`);
       this.emailClient.emit('email.send', {
         to: this.adminEmail,
         subject: '📊 New Brochure Request',
