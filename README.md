@@ -126,6 +126,11 @@ cp .env.example .env
 # No changes needed for local development
 ```
 
+> **⚠️ Email Service Configuration Required**: To enable email notifications (password resets, contact inquiries, etc.), you **must** configure your own SMTP credentials in the `.env` file:
+> - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+> - For Gmail: Enable 2FA and generate an [App Password](https://support.google.com/accounts/answer/185833)
+> - Without email configuration, the email service will start but emails won't be sent
+
 #### 4. Generate Prisma Clients & Run Migrations
 ```bash
 # Generate Prisma clients
